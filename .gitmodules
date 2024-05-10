@@ -1,0 +1,8 @@
+[submodule "alpha-language"]
+	path = alpha-language
+	url = https://github.com/csu-cs-melange/alpha-language
+	branch = cgo-2025-artifact
+[submodule "alphaz"]
+	path = alphaz
+	url = https://github.com/csu-cs-melange/alphaz
+	branch = cgo-2025-artifact
