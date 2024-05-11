@@ -1,7 +1,11 @@
 # alpha-codegen
 
-There are currently two versions of AlphaZ.
-This repository contains two bundles, one for each.
+This repo contains scripts that can be used to generate and compile simple demand driven C code from input Alpha programs.
+There are currently two versions of AlphaZ ("alphaz" [v1](https://github.com/CSU-CS-Melange/AlphaZ) and "alpha-language" [v2](https://github.com/CSU-CS-Melange/alpha-language)) included here as submodules.
+This repository contains two bundles, one for each, which wrap and expose the respective codegen entry points.
+
+## Alpha C Compiler (acc)
+
 The `artifact/bin/acc` script glues together the codegen functionality from both versions and has the following usage,
 ```
 $ ./artifact/bin/acc
@@ -14,7 +18,7 @@ parameters:
 
 This script requires that each bundle be exported into its own jar file and that these jars be placed in the same directory as the script.
 This README describes how to do this.
-Afterwards, the artifact directory should looke like this,
+Afterwards, the artifact directory should look like this,
 ```
 artifact/
 ├── bin
@@ -25,19 +29,85 @@ artifact/
     └── patch-v2-jar.sh
 ```
 
-# Export JAR files
+## Eclipse set up
+
+You will need the relevant plugins installed for both the old and new Alpha versions.
+Install Eclipse IDE for Java Developers. In the following version [2022-06 (4.22)](https://archive.eclipse.org/eclipse/downloads/drops4/R-4.24-202206070700/) is assumed.
+
+1. Launch eclipse and select a fresh workspace
+1. ``Help -> Install new software``
+   - Select "2022-06 - https://download.eclipse.org/releases/2022-06" as the repository to work with
+   - Search for "Xtext" and select ``Xtext Complete SDK`` and install
+   (you may find two or more, but pick one - it shows up under multiple categories, but they are the same thing)
+1. ``Help -> Install new software -> Manage...``
+   - Click on ``Add...`` to add a new repository. Create entries for the following 7 locations:
+       * Name: ``gecos framework``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-framework/artifacts/``
+       * Name: ``gecos emf tools``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-emf/artifacts/``
+       * Name: ``gecos graph tools``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-graph/artifacts/``
+       * Name: ``gecos isl``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-isl/artifacts/``
+       * Name: ``gecos jni mapper``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-jnimapper/artifacts/``
+       * Name: ``gecos tom mapping``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-tommapping/artifacts/``
+       * Name: ``gecos tom sdk``  
+         Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-tomsdk/artifacts/``
+   - Click on ``Apply and Close``
+   - Set "Work with:" to ``--All Available Sites--`` and filter on the string ``gecos`` to populate the list with artifacts from the locations that were just added
+   - Select the following:
+       * EMF Tools
+       * Framework
+       * Graph Tools
+       * ISL
+       * JNI Mapper
+       * Tom Mapping
+       * Tom SDK
+       * Uncategorized (expanding this should show the "JNI Barvinok bindings")
+   - Install all of the above 
+1. ``Help -> Install new software``
+   - Click on ``Add...`` to add a new repository: ``https://csu-cs-melange.github.io/AlphaZ/``
+   - Make sure "Work with:" points to the added repository 
+   - Select ``AlphaZ`` and install 
+1. ``Help -> Install new software``
+   - Click on ``Add...`` to add a new repository: ``https://csu-cs-melange.github.io/alpha-language/``
+   - Make sure "Work with:" points to the added repository 
+   - Select ``Alpha`` and install 
+
+
+## Export JAR files
 
 Follow these steps to create jar files for each of the bundles.
-Some 
 
-1. In Eclipse, import the existing projects `alpha.glue.v1` and `alpha.glue.v2` from bundles into the workspace.
+1. Clone this repo and its submodules,
+   ```
+   $ git clone https://github.com/csu-cs-melange/alpha-codegen && cd alpha-codegen
+   $ git submodule init
+   $ git submodule update
+   ```
+1. In Eclipse, import the following projects into the workspace
+   - `bundles/alpha.glue.v1`
+   - `bundles/alpha.glue.v2`
+1. Import the following Alpha v1 projects
+   - `alphaz/bundles/edu.csu.melange.alphaz.mde`
+   - `alphaz/bundles/edu.csu.melange.jnimap.isl`
+   - `alphaz/bundles/org.polymodel`
+   - `alphaz/bundles/org.polymodel.isl`
+   - `alphaz/bundles/org.polymodel.polyhedralIR`
+   - `alphaz/bundles/org.polymodel.polyhedralIR.codegen`
+1. Import the following Alpha v1 projects
+   - `alpha-language/bundles/alpha.model`
+   - `alpha-language/bundles/alpha.codegen`
 1. Create a Run Configuration for `alpha.glue.v1.GenerateOldSupportingC`. This can be done implicitly by right clicking the `alpha.glue.v1/src/alpha.glue.v1/GenerateSupportingC.xtend` file > Run As > Java Application.
 1. Create another Run Configuration for `alpha.glue.v2.GenerateNewWriteC`.
-1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 2, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
-1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 2, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
+1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 5, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
+1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 6, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
 1. From a terminal, change to the `artifact` directory and run the following command to patch the v2 jar: `./scripts/patch-v2-jar.sh bin/alpha.glue.v2.jar`
 
-Eclipse may complain that exporting the jar fails but still creates the jar on the file system, but at long as the jar file exists this can be ignored.
+Eclipse may complain that exporting the jar fails but still creates the jar on the file system.
+As long as the jar file exists this can be ignored.
 If everything worked, then you should be able to run the jars from a terminal and see the default usage messages,
 ```
 $ java -cp artifact/bin/alpha.glue.v2.jar alpha.glue.v2.GenerateNewWriteC
@@ -47,9 +117,9 @@ $ java -cp artifact/bin/alpha.glue.v1.jar alpha.glue.v1.GenerateOldSupportingC
 usage: alpha_v1_file out_dir
 ```
 
-# Run code generation
+## Generate code
 
-Given a simple Alpha file,
+Given a single-systme Alpha program such as the following,
 ```
 $ cat tmp/test.alpha
 affine prefix_sum [N] -> {: 10<N}
@@ -59,7 +129,7 @@ affine prefix_sum [N] -> {: 10<N}
 .
 ```
 
-Run the aac script as follows to generate and compile everything in a new directory call "out",
+Run the `aac` script as follows to generate and compile everything in a new directory call "out",
 ```
 $ ./artifact/bin/acc test.alpha out
 [acc]: reading 'test.alpha' file
@@ -93,10 +163,10 @@ out/
 ├── prefix_sum-wrapper.c
 ├── prefix_sum.ab
 ├── prefix_sum.c
-├── prefix_sum.check
+├── prefix_sum.check        <-- Allows for manually checking output
 ├── prefix_sum.o
-├── prefix_sum.verify       <-- Checks new and old WriteC outputs
-├── prefix_sum.verify-rand  <-- Checks new and old WriteC outputs with random inputs
+├── prefix_sum.verify       <-- Asserts v2 and v1 WriteC outputs are equivalent
+├── prefix_sum.verify-rand
 ├── prefix_sum_verify.c
 └── prefix_sum_verify.o
 ```
@@ -110,3 +180,7 @@ $ ./out/prefix_sum.verify-rand 30
 Execution time : 0.000011 sec.
 TEST for Y PASSED
 ```
+
+The verification targets use the old WriteC.
+This can be used to bug check the new code generator.
+If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
