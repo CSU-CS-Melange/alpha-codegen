@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# acc - (A)lpha (C) (C)ompiler
+#
+# This script wraps the Alpha codegen functionality and gcc. Given a simple input Alpha
+# program, it produces the demand driven C code from the new (v2) AlphaZ and the supporting
+# wrapper, makefile, and verification code from the old (v1) AlphaZ. Then it compiles
+# everything with gcc.
+# 
+
+BASE_DIR=`dirname $0`
+BASE_NAME=`basename $0`
+
+# exit if any intermediate steps fail
+set -e
+
+function usage {
+  echo "usage: $BASE_NAME alpha_file [output_directory]";
+  echo "parameters:"
+  echo "     alpha_file       :  input Alpha source file"
+  echo "     output_directory :  directory in which to place the output files, if the path"
+  echo "                         does not exist then it will be created (default: .)"
+  echo ""
+}
+
+function assert_file_exists {
+  file_name=$1
+  if [[ ! -f $file_name ]]; then
+    echo "[$BASE_NAME]: error, failed to create the file '$file_name', exiting"
+    exit 1
+  fi
+  echo "[$BASE_NAME]: created '$file_name' file" 
+}
+
+function assert_dependency_exists {
+  dep=$1
+  if [[ -z "$(which $dep)" ]]; then
+    echo "[$BASE_NAME]: error, the utility '$dep' is required but cannot be found in the PATH, exiting"
+    exit 1
+  fi
+}
+
+function assert_dependencies_exist {
+  assert_dependency_exists java
+  assert_dependency_exists make
+  assert_dependency_exists cc
+}
+
+
+#######################################################################
+# preprocessing
+#######################################################################
+
+# make sure that an input file is specified
+if [[ -z "$1" || ! -f "$1" ]]; then
+  usage
+  exit 1
+fi
+
+alpha_file=$1
+out_dir='.'
+if [[ -n "$2" ]]; then
+  mkdir -p $2
+  out_dir=`basename $2`
+fi
+
+# grab the system name from the alpha_file
+system_name=`cat $alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+
+# check and exit if dependencies are not available
+assert_dependencies_exist
+
+
+#######################################################################
+# codegen - system C file
+#######################################################################
+
+# using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
+echo "[$BASE_NAME]: reading '$alpha_file' file"
+java -cp ${BASE_DIR}/alpha.glue.v2.jar \
+  alpha.glue.v2.GenerateNewWriteC \
+  $alpha_file \
+  $out_dir
+assert_file_exists ${out_dir}/${system_name}.ab
+assert_file_exists ${out_dir}/${system_name}.c
+
+
+#######################################################################
+# codegen - wrapper & verify C files and Makefile
+#######################################################################
+
+echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
+# using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
+java -cp ${BASE_DIR}/alpha.glue.v1.jar \
+  alpha.glue.v1.GenerateOldSupportingC \
+  ${out_dir}/${system_name}.ab \
+  $out_dir
+assert_file_exists ${out_dir}/${system_name}-wrapper.c
+assert_file_exists ${out_dir}/${system_name}_verify.c
+assert_file_exists ${out_dir}/Makefile
+
+
+#######################################################################
+# build generated C file with make
+#######################################################################
+
+echo "[$BASE_NAME]: building with make"
+make -C $out_dir
+
