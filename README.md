@@ -29,10 +29,10 @@ artifact/
     └── patch-v2-jar.sh
 ```
 
-## Eclipse set up
+## Eclipse setup
 
 You will need the relevant plugins installed for both the old and new Alpha versions.
-Install Eclipse IDE for Java Developers. In the following version [2022-06 (4.22)](https://archive.eclipse.org/eclipse/downloads/drops4/R-4.24-202206070700/) is assumed.
+Install Eclipse IDE for Java Developers. In the following, version [2022-06 (4.22)](https://archive.eclipse.org/eclipse/downloads/drops4/R-4.24-202206070700/) is assumed.
 
 1. Launch eclipse and select a fresh workspace
 1. ``Help -> Install new software``
@@ -97,14 +97,14 @@ Follow these steps to create jar files for each of the bundles.
    - `alphaz/bundles/org.polymodel.isl`
    - `alphaz/bundles/org.polymodel.polyhedralIR`
    - `alphaz/bundles/org.polymodel.polyhedralIR.codegen`
-1. Import the following Alpha v1 projects
+1. Import the following Alpha v2 projects
    - `alpha-language/bundles/alpha.model`
    - `alpha-language/bundles/alpha.codegen`
 1. Create a Run Configuration for `alpha.glue.v1.GenerateOldSupportingC`. This can be done implicitly by right clicking the `alpha.glue.v1/src/alpha.glue.v1/GenerateSupportingC.xtend` file > Run As > Java Application.
 1. Create another Run Configuration for `alpha.glue.v2.GenerateNewWriteC`.
 1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 5, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
 1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 6, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
-1. From a terminal, change to the `artifact` directory and run the following command to patch the v2 jar: `./scripts/patch-v2-jar.sh bin/alpha.glue.v2.jar`
+1. From a terminal, run the following command to patch the v2 jar: `./artifact/scripts/patch-v2-jar.sh artifact/bin/alpha.glue.v2.jar`
 
 Eclipse may complain that exporting the jar fails but still creates the jar on the file system.
 As long as the jar file exists this can be ignored.
@@ -119,9 +119,9 @@ usage: alpha_v1_file out_dir
 
 ## Generate code
 
-Given a single-systme Alpha program such as the following,
+Given a single-system Alpha program such as the following,
 ```
-$ cat tmp/test.alpha
+// test.alpha
 affine prefix_sum [N] -> {: 10<N}
 	inputs X : [N]
 	outputs	Y : [N]
@@ -129,7 +129,7 @@ affine prefix_sum [N] -> {: 10<N}
 .
 ```
 
-Run the `aac` script as follows to generate and compile everything in a new directory call "out",
+Run the `acc` script as follows to generate and compile everything in a new directory called `out`,
 ```
 $ ./artifact/bin/acc test.alpha out
 [acc]: reading 'test.alpha' file
@@ -155,7 +155,7 @@ cc prefix_sum-wrapper.c -o prefix_sum.verify prefix_sum.o  prefix_sum_verify.o -
 cc prefix_sum-wrapper.c -o prefix_sum.verify-rand prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY -DRANDOM
 ```
 
-The generated files, in the "out" directory, will look like this,
+The generated files, in the `out` directory, will look like this,
 ```
 out/
 ├── Makefile
@@ -182,5 +182,5 @@ TEST for Y PASSED
 ```
 
 The verification targets use the old WriteC.
-This can be used to bug check the new code generator.
+This can be used to bug check the new code generator (assuming the same bug is also present in the old one).
 If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
