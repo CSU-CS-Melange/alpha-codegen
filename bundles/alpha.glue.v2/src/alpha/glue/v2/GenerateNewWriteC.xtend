@@ -50,10 +50,10 @@ class GenerateNewWriteC {
 	/** Generates the new (v2) demand driven code for the given system */
 	def static generateWriteC(AlphaSystem system, String outDir) {
 		val program = SystemConverter.convert(system)
-        val code = ProgramPrinter.print(program).toString
-        val writer = new FileWriter('''«outDir»/«system.name».c''')
-        writer.write(code)
-        writer.close
+		val code = ProgramPrinter.print(program).toString
+		val writer = new FileWriter('''«outDir»/«system.name».c''')
+		writer.write(code)
+		writer.close
 	}
 	
 	def static thenQuitWithError(boolean conditionToQuit, String message) {
