@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: V2
+Bundle-SymbolicName: alpha.glue.v2
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: alpha.glue.v2
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: alpha.codegen;bundle-version="1.0.0",
+ alpha.model;bundle-version="0.1.0",
+ alpha.loader;bundle-version="0.1.0",
+ alpha.model.xtext;bundle-version="0.1.0",
+ alpha.targetmapping.xtext;bundle-version="0.1.0"
+Export-Package: alpha.glue.v2
