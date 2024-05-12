@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# acc - (A)lpha (C) (C)ompiler
+# acc - (A)lpha to (C) (C)ompiler
 #
 # This script wraps the Alpha codegen functionality and gcc. Given a simple input Alpha
 # program, it produces the demand driven C code from the new (v2) AlphaZ and the supporting
@@ -61,7 +61,7 @@ alpha_file=$1
 out_dir='.'
 if [[ -n "$2" ]]; then
   mkdir -p $2
-  out_dir=`basename $2`
+  out_dir=$2
 fi
 
 # grab the system name from the alpha_file
