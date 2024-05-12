@@ -4,11 +4,11 @@ This repo contains scripts that can be used to generate and compile simple deman
 There are currently two versions of AlphaZ ("alphaz" [v1](https://github.com/CSU-CS-Melange/AlphaZ) and "alpha-language" [v2](https://github.com/CSU-CS-Melange/alpha-language)) included here as submodules.
 This repository contains two bundles, one for each, which wrap and expose the respective codegen entry points.
 
-## Alpha C Compiler (acc)
+## Alpha to C Compiler (acc)
 
-The `artifact/bin/acc` script glues together the codegen functionality from both versions and has the following usage,
+The `acc` utility glues together the codegen functionality from both versions and has the following usage,
 ```
-$ ./artifact/bin/acc
+$ acc
 usage: acc alpha_file [output_directory]
 parameters:
      alpha_file       :  input Alpha source file
@@ -16,18 +16,36 @@ parameters:
                          does not exist then it will be created (default: .)
 ```
 
+# Installation
+
+You can install the stand alone utility from the [latest release](https://github.com/CSU-CS-Melange/alpha-codegen/releases/latest).
+Download the `acc-installer.sh.tgz` asset, extract it, and run the `acc-installer.sh` script.
+```
+$ tar -xf acc-installer.sh.tgz
+$ ./acc-installer.sh 
+Verifying archive integrity...  100%   MD5 checksums are OK. All good.
+Uncompressing Alpha to C Compiler (acc)  100%  
+
+Additional steps may be required. The (A)lpha to (C) (C)ompiler has been
+installed to the following location:
+
+    $HOME/.acc/bin
+
+You may wish to add this to you path with the following command:
+
+    export PATH=$PATH:$HOME/.acc/bin
+```
+This will install the `acc` utility in your home directory.
+You may optionally wish to add this to your shell's PATH.
+Alternatively, you can follow the steps in the following sections to build everything from source.
+
+
+# Build from source
+
+Follow the steps below to build everything from source in a local Eclipse instance.
 This script requires that each bundle be exported into its own jar file and that these jars be placed in the same directory as the script.
-This README describes how to do this.
-Afterwards, the artifact directory should look like this,
-```
-artifact/
-├── bin
-│   ├── acc
-│   ├── alpha.glue.v1.jar
-│   └── alpha.glue.v2.jar
-└── scripts
-    └── patch-v2-jar.sh
-```
+The following sections describe how to do this.
+
 
 ## Eclipse setup
 
@@ -108,7 +126,17 @@ Follow these steps to create jar files for each of the bundles.
 
 Eclipse may complain that exporting the jar fails but still creates the jar on the file system.
 As long as the jar file exists this can be ignored.
-If everything worked, then you should be able to run the jars from a terminal and see the default usage messages,
+If everything worked, the artifact directory should look like this,
+```
+artifact/
+├── bin
+│   ├── acc
+│   ├── alpha.glue.v1.jar
+│   └── alpha.glue.v2.jar
+└── scripts
+    └── patch-v2-jar.sh
+```
+and you should be able to run the jars from a terminal and see the default usage messages,
 ```
 $ java -cp artifact/bin/alpha.glue.v2.jar alpha.glue.v2.GenerateNewWriteC
 usage: alpha_v2_file out_dir

@@ -28,11 +28,9 @@ makeself \
   --nocomp \
   --nox11 \
   --nochown \
-  --nomd5 \
-  --nocrc \
   $BASE_DIR/../../artifact/bin \
   acc-installer.sh \
-  "Alpha to C Compiler (acc)" \
+  "Alpha to C Compiler" \
   ./install-acc.sh
 
 tar -cf acc-installer.sh.tgz acc-installer.sh
