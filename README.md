@@ -31,7 +31,7 @@ installed to the following location:
 
     $HOME/.acc/bin
 
-You may wish to add this to you path with the following command:
+You may wish to add this to your path with the following command:
 
     export PATH=$PATH:$HOME/.acc/bin
 ```
