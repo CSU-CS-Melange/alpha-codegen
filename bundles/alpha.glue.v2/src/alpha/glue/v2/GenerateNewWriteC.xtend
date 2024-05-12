@@ -47,9 +47,9 @@ class GenerateNewWriteC {
 		AlphaModelSaver.writeToFile(abFile, ShowLegacyAlpha.print(system))		
 	}
 	
-	/** Generates the new (v2) demand driven code for the given system */
+	/** Generates the new (v2) demand driven code compatible with v1 for the given system */
 	def static generateWriteC(AlphaSystem system, String outDir) {
-		val program = SystemConverter.convert(system)
+		val program = SystemConverter.convert(system, true)
 		val code = ProgramPrinter.print(program).toString
 		val writer = new FileWriter('''«outDir»/«system.name».c''')
 		writer.write(code)

@@ -54,11 +54,11 @@ public class GenerateNewWriteC {
   }
 
   /**
-   * Generates the new (v2) demand driven code for the given system
+   * Generates the new (v2) demand driven code compatible with v1 for the given system
    */
   public static void generateWriteC(final AlphaSystem system, final String outDir) {
     try {
-      final Program program = SystemConverter.convert(system);
+      final Program program = SystemConverter.convert(system, true);
       final String code = ProgramPrinter.print(program).toString();
       StringConcatenation _builder = new StringConcatenation();
       _builder.append(outDir);
