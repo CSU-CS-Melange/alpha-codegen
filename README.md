@@ -38,6 +38,7 @@ Install Eclipse IDE for Java Developers. In the following, version [2022-06 (4.2
 1. ``Help -> Install new software``
    - Select "2022-06 - https://download.eclipse.org/releases/2022-06" as the repository to work with
    - Search for "Xtext" and select ``Xtext Complete SDK`` and install
+   - Search for "Eclipse Modeling Framework" and select ``EMF - Eclipse Modeling Framework SDK`` and install
    (you may find two or more, but pick one - it shows up under multiple categories, but they are the same thing)
 1. ``Help -> Install new software -> Manage...``
    - Click on ``Add...`` to add a new repository. Create entries for the following 7 locations:
@@ -55,6 +56,10 @@ Install Eclipse IDE for Java Developers. In the following, version [2022-06 (4.2
          Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-tommapping/artifacts/``
        * Name: ``gecos tom sdk``  
          Location: ``https://gecos.gitlabpages.inria.fr/gecos-tools/gecos-tools-tomsdk/artifacts/``
+       * Name: ``alphaz``  
+         Location: ``https://csu-cs-melange.github.io/AlphaZ/``
+       * Name: ``alpha-language``  
+         Location: ``https://csu-cs-melange.github.io/alpha-language/``
    - Click on ``Apply and Close``
    - Set "Work with:" to ``--All Available Sites--`` and filter on the string ``gecos`` to populate the list with artifacts from the locations that were just added
    - Select the following:
@@ -67,14 +72,8 @@ Install Eclipse IDE for Java Developers. In the following, version [2022-06 (4.2
        * Tom SDK
        * Uncategorized (expanding this should show the "JNI Barvinok bindings")
    - Install all of the above 
-1. ``Help -> Install new software``
-   - Click on ``Add...`` to add a new repository: ``https://csu-cs-melange.github.io/AlphaZ/``
-   - Make sure "Work with:" points to the added repository 
-   - Select ``AlphaZ`` and install 
-1. ``Help -> Install new software``
-   - Click on ``Add...`` to add a new repository: ``https://csu-cs-melange.github.io/alpha-language/``
-   - Make sure "Work with:" points to the added repository 
-   - Select ``Alpha`` and install 
+   - Search for "groovy" and install `Eclipse Groovy Development Tools`
+   - Search for "Alpha" and install both `Alpha Language` and `AlphaZ`
 
 
 ## Export JAR files
@@ -102,6 +101,7 @@ Follow these steps to create jar files for each of the bundles.
    - `alpha-language/bundles/alpha.codegen`
 1. Create a Run Configuration for `alpha.glue.v1.GenerateOldSupportingC`. This can be done implicitly by right clicking the `alpha.glue.v1/src/alpha.glue.v1/GenerateSupportingC.xtend` file > Run As > Java Application.
 1. Create another Run Configuration for `alpha.glue.v2.GenerateNewWriteC`.
+1. Download the "AOP Alliance" dependency jar file from https://sourceforge.net/projects/aopalliance/ and add it as a dependent library to the alpha.glue.v1 package. Right click alpha.glue.v1 package > Build Path > Configure Build Path..." > Libraries > Classpath > Add External JARS... > browse to the downloaded jar > Open > Apply and Close.
 1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 5, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
 1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 6, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
 1. From a terminal, run the following command to patch the v2 jar: `./artifact/scripts/patch-v2-jar.sh artifact/bin/alpha.glue.v2.jar`
