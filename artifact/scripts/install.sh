@@ -26,7 +26,6 @@ fi
 # call makeself to bundle everything
 makeself \
   --nocomp \
-  --current \
   --nox11 \
   --nochown \
   --nomd5 \
@@ -38,4 +37,4 @@ makeself \
 
 # move it to the repo root directory
 mkdir -p /usr/local/bin/
-cp acc /usr/local/bin/
+mv acc /usr/local/bin/
