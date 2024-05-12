@@ -37,6 +37,7 @@ You may wish to add this to you path with the following command:
 ```
 This will install the `acc` utility in your home directory.
 You may optionally wish to add this to your shell's PATH.
+Note, this depends on java and your `JAVA_HOME` environment variable must point to a jdk of at least version 11.
 Alternatively, you can follow the steps in the following sections to build everything from source.
 
 
