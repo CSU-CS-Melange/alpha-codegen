@@ -33,7 +33,7 @@ makeself \
   "Alpha to C Compiler" \
   ./install-acc.sh
 
-tar -cf acc-installer.sh.tgz acc-installer.sh
+tar -czf acc-installer.sh.tgz acc-installer.sh
 
 function get_latest_release {
   curl -L \
