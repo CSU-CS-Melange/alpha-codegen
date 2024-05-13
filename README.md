@@ -211,5 +211,5 @@ TEST for Y PASSED
 ```
 
 The verification targets use the old WriteC.
-This can be used to bug check the new code generator (assuming the same bug is also present in the old one).
+This can be used to bug check the new code generator (assuming the same bug is not also present in the old one).
 If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
