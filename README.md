@@ -138,8 +138,8 @@ artifact
 ```
 and you should be able to run the jars from a terminal and see the default usage messages,
 ```
-$ java -cp artifact/bin/alpha.glue.v2.jar alpha.glue.v2.GenerateNewWriteC
-usage: alpha_v2_file out_dir
+$ java -jar artifact/bin/alpha.glue.v2.jar
+usage: alpha_v2_file out_dir [choice]
 
 $ java -jar artifact/bin/alpha.glue.v1.jar
 usage: alpha_v1_file out_dir

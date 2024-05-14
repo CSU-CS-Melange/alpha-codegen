@@ -152,8 +152,7 @@ if [[ "$choice" == "2" || "$choice" == "0" ]]; then
   
   # using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
   echo "[$BASE_NAME]: reading '$v2_gen_alpha_file' file"
-  java -cp ${BASE_DIR}/alpha.glue.v2.jar \
-    alpha.glue.v2.GenerateNewWriteC \
+  java -jar ${BASE_DIR}/alpha.glue.v2.jar \
     $v2_gen_alpha_file \
     $out_dir \
     $choice
@@ -171,8 +170,7 @@ if [[ "$choice" == "1" || "$choice" == "0" ]]; then
 
   # generate *.ab file
   echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
-  java -cp ${BASE_DIR}/alpha.glue.v2.jar \
-    alpha.glue.v2.GenerateNewWriteC \
+  java -jar ${BASE_DIR}/alpha.glue.v2.jar \
     $v1_gen_alpha_file \
     $out_dir \
     1
@@ -180,8 +178,7 @@ if [[ "$choice" == "1" || "$choice" == "0" ]]; then
   
   echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
   # using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
-  java -cp ${BASE_DIR}/alpha.glue.v1.jar \
-    alpha.glue.v1.GenerateOldSupportingC \
+  java -jar ${BASE_DIR}/alpha.glue.v1.jar \
     ${out_dir}/${system_name}.ab \
     $out_dir
   assert_file_exists ${out_dir}/${system_name}-wrapper.c

@@ -1,13 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: V1
-Bundle-SymbolicName: alpha.glue.v1
-Bundle-Version: 1.0.0.qualifier
-Automatic-Module-Name: alpha.glue.v1
-Bundle-RequiredExecutionEnvironment: JavaSE-11
-Require-Bundle: com.google.guava,
+Bundle-Name: alpha.glue.v1
+Bundle-SymbolicName: alpha.glue.v1; singleton:=true
+Bundle-Version: 0.1.0.qualifier
+Require-Bundle: org.eclipse.emf.ecore,
  org.eclipse.xtext.xbase.lib,
- org.eclipse.xtend.lib,
- org.eclipse.xtend.lib.macro,
+ org.eclipse.emf.ecore.xcore.lib,
  edu.csu.melange.alphaz.mde;bundle-version="1.0.0",
- org.polymodel.polyhedralIR.codegen;bundle-version="1.0.0"
+ org.polymodel.polyhedralIR.codegen;bundle-version="1.0.0",
+ org.aopalliance;bundle-version="1.0.0"
