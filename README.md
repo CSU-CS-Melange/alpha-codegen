@@ -122,26 +122,26 @@ Follow these steps to create jar files for each of the bundles.
 1. Create another Run Configuration for `alpha.glue.v2.GenerateNewWriteC`.
 1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 5, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
 1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 6, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
-1. From a terminal, run the following command to patch the v2 jar: `./artifact/scripts/patch-v2-jar.sh artifact/bin/alpha.glue.v2.jar`
 
 Eclipse may complain that exporting the jar fails but still creates the jar on the file system.
 As long as the jar file exists this can be ignored.
 If everything worked, the artifact directory should look like this,
 ```
-artifact/
+artifact
 ├── bin
 │   ├── acc
 │   ├── alpha.glue.v1.jar
-│   └── alpha.glue.v2.jar
+│   ├── alpha.glue.v2.jar
+│   └── install-acc.sh
 └── scripts
-    └── patch-v2-jar.sh
+    └── upload-release-asset.sh
 ```
 and you should be able to run the jars from a terminal and see the default usage messages,
 ```
 $ java -cp artifact/bin/alpha.glue.v2.jar alpha.glue.v2.GenerateNewWriteC
 usage: alpha_v2_file out_dir
 
-$ java -cp artifact/bin/alpha.glue.v1.jar alpha.glue.v1.GenerateOldSupportingC
+$ java -jar artifact/bin/alpha.glue.v1.jar
 usage: alpha_v1_file out_dir
 ```
 
