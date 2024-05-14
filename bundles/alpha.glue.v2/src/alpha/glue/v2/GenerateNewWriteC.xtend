@@ -20,25 +20,31 @@ class GenerateNewWriteC {
 	def static void main(String[] args) {
 
 		// Check args
-		(args.size < 2).thenQuitWithError('usage: alpha_v2_file out_dir')
+		(args.size < 2).thenQuitWithError('usage: alpha_v2_file out_dir [choice]')
 		
 		val alphaFile = args.get(0)
 		val outDir = args.get(1)
-
+		val choice = if (args.size > 2) Integer.parseInt(args.get(2)) else 0
+		
 		// Read input alpha program
 		val root = AlphaLoader.loadAlpha(alphaFile)
 		(root.systems.size > 1).thenQuitWithError('error: only single system alpha programs are supported by this tool')
 		val system = root.systems.get(0)
 		
-		// Always generate the v1 alpha before any transformations
-		system.generateV1Alpha(outDir)
+		if (choice == 1 || choice == 0) {			
+			// Generate the v1 alpha before any transformations
+			system.generateV1Alpha(outDir)
+		}
 		
-		//
-		// Placeholder for processing any transformations like simplifying reductions
-		//
-		
-		// Generate the v2 demand driven code
-		system.generateWriteC(outDir)
+		if (choice == 2 || choice == 0) {
+			
+			//
+			// Placeholder for processing any transformations like simplifying reductions
+			//
+			
+			// Generate the v2 demand driven code
+			system.generateWriteC(outDir)			
+		}
 	}
 	
 	/** Generates the old (v1) alphaz ab file for the given system */

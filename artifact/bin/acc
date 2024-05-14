@@ -15,12 +15,23 @@ BASE_NAME=`basename $0`
 set -e
 
 function usage {
-  echo "usage: $BASE_NAME alpha_file [output_directory]";
-  echo "parameters:"
-  echo "     alpha_file       :  input Alpha source file"
-  echo "     output_directory :  directory in which to place the output files, if the path"
-  echo "                         does not exist then it will be created (default: .)"
+  echo "usage:" 
+  echo "  $BASE_NAME [-m] [-o out_dir] alpha_file";
+  echo "  $BASE_NAME [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
+  echo "options:"
+  echo "    -v1, --gen-v1-from   :  Input Alpha file (*.alpha) used to generate makefile,"
+  echo "                            wrapper, and verification files" 
+  echo "    -v2, --gen-v2-from   :  Input Alpha file (*.alpha) used to generate main system"
+  echo "    -o,  --out-dir       :  Directory in which to place the output files, if the"
+  echo "                            path does not exist then it will be created (default: .)"
+  echo "    -m,  --make          :  Run make to build the generated file. Note, this may"
+  echo "                            fail if both v1 and v2 files have not been generated."
+  echo "arguments:"
+  echo "    alpha_file           :  Input Alpha file used to generate main ystem, makefile,"
+  echo "                            wrapper, and verification files" 
   echo ""
+  echo "The -v1 and -v2 options override the positional alpha_file arg if both are specified."
+  echo "At least one input alpha file must be specified."
 }
 
 function assert_file_exists {
@@ -48,62 +59,141 @@ function assert_dependencies_exist {
 
 
 #######################################################################
-# preprocessing
+# arg parsing and preprocessing
 #######################################################################
 
-# make sure that an input file is specified
-if [[ -z "$1" || ! -f "$1" ]]; then
+out_dir='.'
+
+params=""
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      usage;
+      exit 0;
+      ;;
+    -m|--make)
+      MAKE=1;
+      shift 1
+      ;;
+    -v1|--gen-v1-from)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        v1_file=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    -v2|--gen-v2-from)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        v2_file=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    -o|--out-dir)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        out_dir=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    -*|--*=) # unsupported flags
+      echo "unrecognized option -- $(echo $1 | sed 's~^-*~~')" >&2
+      usage;
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      params="$params $1"
+      shift
+      ;;
+  esac
+done
+
+eval set -- "$params";
+
+if [[ -z "$v1_file" && -z "$v2_file" && -z "$1" ]]; then
+  echo "No input alpha_file was specified"
   usage
   exit 1
-fi
+fi 
 
-alpha_file=$1
-out_dir='.'
-if [[ -n "$2" ]]; then
-  mkdir -p $2
-  out_dir=$2
-fi
+v1_gen_alpha_file=$1
+if [[ -n "$v1_file" ]]; then v1_gen_alpha_file=$v1_file; fi
 
-# grab the system name from the alpha_file
-system_name=`cat $alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+v2_gen_alpha_file=$1
+if [[ -n "$v2_file" ]]; then v2_gen_alpha_file=$v2_file; fi
+
+if   [[ -z "$v1_file" && -n "$v2_file" ]]; then
+  choice=2
+elif [[ -n "$v1_file" && -z "$v2_file" ]]; then
+  choice=1
+else
+  choice=0
+fi
 
 # check and exit if dependencies are not available
 assert_dependencies_exist
 
+# make out directory if it doesn't already exist
+mkdir -p $out_dir
 
 #######################################################################
 # codegen - system C file
 #######################################################################
 
-# using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
-echo "[$BASE_NAME]: reading '$alpha_file' file"
-java -cp ${BASE_DIR}/alpha.glue.v2.jar \
-  alpha.glue.v2.GenerateNewWriteC \
-  $alpha_file \
-  $out_dir
-assert_file_exists ${out_dir}/${system_name}.ab
-assert_file_exists ${out_dir}/${system_name}.c
-
+if [[ "$choice" == "2" || "$choice" == "0" ]]; then
+  # grab the system name from the alpha_file
+  system_name=`cat $v2_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+  
+  # using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
+  echo "[$BASE_NAME]: reading '$v2_gen_alpha_file' file"
+  java -cp ${BASE_DIR}/alpha.glue.v2.jar \
+    alpha.glue.v2.GenerateNewWriteC \
+    $v2_gen_alpha_file \
+    $out_dir \
+    $choice
+  assert_file_exists ${out_dir}/${system_name}.c
+fi
 
 #######################################################################
 # codegen - wrapper & verify C files and Makefile
 #######################################################################
 
-echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
-# using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
-java -cp ${BASE_DIR}/alpha.glue.v1.jar \
-  alpha.glue.v1.GenerateOldSupportingC \
-  ${out_dir}/${system_name}.ab \
-  $out_dir
-assert_file_exists ${out_dir}/${system_name}-wrapper.c
-assert_file_exists ${out_dir}/${system_name}_verify.c
-assert_file_exists ${out_dir}/Makefile
+if [[ "$choice" == "1" || "$choice" == "0" ]]; then
 
+  # grab the system name from the alpha_file
+  system_name=`cat $v1_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+
+  # generate *.ab file
+  echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
+  java -cp ${BASE_DIR}/alpha.glue.v2.jar \
+    alpha.glue.v2.GenerateNewWriteC \
+    $v1_gen_alpha_file \
+    $out_dir \
+    1
+  assert_file_exists ${out_dir}/${system_name}.ab
+  
+  echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
+  # using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
+  java -cp ${BASE_DIR}/alpha.glue.v1.jar \
+    alpha.glue.v1.GenerateOldSupportingC \
+    ${out_dir}/${system_name}.ab \
+    $out_dir
+  assert_file_exists ${out_dir}/${system_name}-wrapper.c
+  assert_file_exists ${out_dir}/${system_name}_verify.c
+  assert_file_exists ${out_dir}/Makefile
+fi
 
 #######################################################################
 # build generated C file with make
 #######################################################################
 
-echo "[$BASE_NAME]: building with make"
-make -C $out_dir
-
+if [[ -n "$MAKE" ]]; then
+  echo "[$BASE_NAME]: building with make"
+  make -C $out_dir
+fi

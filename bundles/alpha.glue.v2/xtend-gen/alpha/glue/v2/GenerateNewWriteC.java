@@ -25,15 +25,28 @@ public class GenerateNewWriteC {
   public static void main(final String[] args) {
     try {
       int _size = ((List<String>)Conversions.doWrapArray(args)).size();
-      GenerateNewWriteC.thenQuitWithError((_size < 2), "usage: alpha_v2_file out_dir");
+      GenerateNewWriteC.thenQuitWithError((_size < 2), "usage: alpha_v2_file out_dir [choice]");
       final String alphaFile = args[0];
       final String outDir = args[1];
+      int _xifexpression = (int) 0;
+      int _size_1 = ((List<String>)Conversions.doWrapArray(args)).size();
+      boolean _greaterThan = (_size_1 > 2);
+      if (_greaterThan) {
+        _xifexpression = Integer.parseInt(args[2]);
+      } else {
+        _xifexpression = 0;
+      }
+      final int choice = _xifexpression;
       final AlphaRoot root = AlphaLoader.loadAlpha(alphaFile);
-      int _size_1 = root.getSystems().size();
-      GenerateNewWriteC.thenQuitWithError((_size_1 > 1), "error: only single system alpha programs are supported by this tool");
+      int _size_2 = root.getSystems().size();
+      GenerateNewWriteC.thenQuitWithError((_size_2 > 1), "error: only single system alpha programs are supported by this tool");
       final AlphaSystem system = root.getSystems().get(0);
-      GenerateNewWriteC.generateV1Alpha(system, outDir);
-      GenerateNewWriteC.generateWriteC(system, outDir);
+      if (((choice == 1) || (choice == 0))) {
+        GenerateNewWriteC.generateV1Alpha(system, outDir);
+      }
+      if (((choice == 2) || (choice == 0))) {
+        GenerateNewWriteC.generateWriteC(system, outDir);
+      }
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
     }
