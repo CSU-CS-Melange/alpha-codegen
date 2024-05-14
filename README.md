@@ -120,7 +120,6 @@ Follow these steps to create jar files for each of the bundles.
    - `alpha-language/bundles/alpha.codegen`
 1. Create a Run Configuration for `alpha.glue.v1.GenerateOldSupportingC`. This can be done implicitly by right clicking the `alpha.glue.v1/src/alpha.glue.v1/GenerateSupportingC.xtend` file > Run As > Java Application.
 1. Create another Run Configuration for `alpha.glue.v2.GenerateNewWriteC`.
-1. Download the "AOP Alliance" dependency jar file from https://sourceforge.net/projects/aopalliance/ and add it as a dependent library to the alpha.glue.v1 package. Right click alpha.glue.v1 package > Build Path > Configure Build Path..." > Libraries > Classpath > Add External JARS... > browse to the downloaded jar > Open > Apply and Close.
 1. Right click the `alpha.glue.v1` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 5, specify the "Export destination" as `artifact/bin/alpha.glue.v1.jar`, and select the option to extract required libraries into generated JAR.
 1. Right click the `alpha.glue.v2` package > Export ... > Java > Runnable JAR File > specify the "Launch configuration" from step 6, specify the "Export destination" as `artifact/bin/alpha.glue.v2.jar`, and select the option to extract required libraries into generated JAR.
 1. From a terminal, run the following command to patch the v2 jar: `./artifact/scripts/patch-v2-jar.sh artifact/bin/alpha.glue.v2.jar`
