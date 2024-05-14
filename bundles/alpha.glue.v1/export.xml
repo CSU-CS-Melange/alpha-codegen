@@ -1,71 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project alpha.glue.v1">
-    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
-    <!--ANT 1.7 is required                                        -->
+<project default="create_run_jar" name="Create Runnable Jar for Project alpha.glue.v1 with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR file Export Wizard-->
+    <!--ANT 1.7 is required-->
     <!--define folder properties-->
     <property name="dir.buildfile" value="."/>
-    <property name="dir.workspace" value="${basedir}/../../"/>
     <property name="dir.jarfile" value="${basedir}/../../artifact/bin"/>
     <target name="create_run_jar">
-        <jar destfile="${dir.jarfile}/alpha.glue.v1.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="${dir.jarfile}/alpha.glue.v1.jar">
             <manifest>
-                <attribute name="Main-Class" value="alpha.glue.v1.GenerateOldSupportingC"/>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="alpha.glue.v1.GenerateOldSupportingC"/>
                 <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ org.eclipse.emf.ecore_2.27.0.v20220426-0617.jar org.eclipse.emf.common_2.25.0.v20220325-0806.jar org.eclipse.xtext.xbase.lib_2.27.0.v20220530-0353.jar com.google.guava_30.1.0.v20210127-2300.jar org.eclipse.emf.ecore.xcore.lib_1.6.0.v20210405-0628.jar org.eclipse.core.runtime_3.25.0.v20220506-1157.jar org.eclipse.osgi_3.18.0.v20220516-2155.jar org.codehaus.groovy.eclipse.frameworkAdapter_5.3.0.v202403311436-e2206.jar org.eclipse.osgi.compatibility.state_1.2.600.v20220207-1403.jar org.eclipse.equinox.common_3.16.100.v20220315-2327.jar org.eclipse.core.jobs_3.13.0.v20220512-1935.jar org.eclipse.equinox.registry_3.11.100.v20211021-1418.jar org.eclipse.equinox.preferences_3.10.0.v20220503-1634.jar org.osgi.service.prefs_1.1.2.202109301733.jar org.eclipse.core.contenttype_3.8.100.v20210910-0640.jar org.eclipse.equinox.app_1.6.100.v20211021-1418.jar org.eclipse.emf.ecore.xmi_2.16.0.v20190528-0725.jar org.eclipse.emf.mwe.core_1.7.0.v20220519-1115.jar org.apache.commons.cli_1.6.0.jar org.eclipse.emf.mwe2.runtime_2.13.0.v20220519-1115.jar org.eclipse.emf.mwe.utils_1.7.0.v20220519-1115.jar org.apache.log4j_1.2.25.jar org.apache.commons.logging_1.2.0.v20180409-1502.jar org.antlr.runtime_3.2.0.v20220404-1927.jar edu.csu.melange.jnimap.cloog_1.0.0.202401210902.jar fr.irisa.cairn.jnimap.runtime_1.4.0.202202030956.jar aircube-bundle.jar javatuples-1.2-javadoc.jar javatuples-1.2-sources.jar javatuples-1.2.jar fr.irisa.cairn.graph_1.0.1.202202031001.jar jgrapht-ext-0.9.1-uber.jar com.google.inject_5.0.1.v20210324-2015.jar fr.irisa.cairn.graph.guice_1.0.1.202202031001.jar org.polymodel.algebra_1.0.0.202401210902.jar org.polymodel.scop_1.0.0.202401210902.jar org.polymodel.scop.bridge.clast_1.0.0.202401210902.jar org.polymodel.scop.dtiler_1.0.0.202401210902.jar org.polymodel.scop.cgenerator2_1.0.0.202401210902.jar edu.csu.melange.alphabets_0.9.6.202401210902.jar org.eclipse.xtext_2.27.0.v20220530-0355.jar org.eclipse.xtext.util_2.27.0.v20220530-0355.jar javax.inject_1.0.0.v20220405-0441.jar org.polymodel.prdg_1.0.0.202401210902.jar org.polymodel.prdg.adapter_1.0.0.202401210902.jar org.polymodel.prdg.scheduling_1.0.0.202401210902.jar org.eclipse.xtext.xbase_2.27.0.v20220530-0402.jar org.eclipse.xtext.common.types_2.27.0.v20220530-0402.jar org.eclipse.xtend.lib_2.27.0.v20220530-0353.jar org.eclipse.xtend.lib.macro_2.27.0.v20220530-0353.jar org.polymodel.matrix_1.0.0.202401210902.jar tom.mapping_1.0.1.202202021203.jar org.aopalliance_1.0.0.v20230720-0728.jar"/>
             </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
             <fileset dir="${dir.buildfile}/bin"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.ecore_2.27.0.v20220426-0617.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.common_2.25.0.v20220325-0806.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtext.xbase.lib_2.27.0.v20220530-0353.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../com.google.guava_30.1.0.v20210127-2300.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.ecore.xcore.lib_1.6.0.v20210405-0628.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.core.runtime_3.25.0.v20220506-1157.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.osgi_3.18.0.v20220516-2155.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.codehaus.groovy.eclipse.frameworkAdapter_5.3.0.v202403311436-e2206.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.osgi.compatibility.state_1.2.600.v20220207-1403.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.equinox.common_3.16.100.v20220315-2327.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.core.jobs_3.13.0.v20220512-1935.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.equinox.registry_3.11.100.v20211021-1418.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.equinox.preferences_3.10.0.v20220503-1634.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.osgi.service.prefs_1.1.2.202109301733.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.core.contenttype_3.8.100.v20210910-0640.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.equinox.app_1.6.100.v20211021-1418.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.ecore.xmi_2.16.0.v20190528-0725.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.mwe.core_1.7.0.v20220519-1115.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.apache.commons.cli_1.6.0.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.mwe2.runtime_2.13.0.v20220519-1115.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.emf.mwe.utils_1.7.0.v20220519-1115.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.apache.log4j_1.2.25.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.apache.commons.logging_1.2.0.v20180409-1502.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.antlr.runtime_3.2.0.v20220404-1927.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../edu.csu.melange.jnimap.cloog_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.jnimap.runtime_1.4.0.202202030956.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.eclipse.tom_2.10.6.202202011652/libs/aircube-bundle.jar"/>
-            <fileset dir="${ant.library.dir}/../../fr.irisa.cairn.tools_1.0.1.202202021419"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.tools_1.0.1.202202021419/lib/javatuples-1.2-javadoc.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.tools_1.0.1.202202021419/lib/javatuples-1.2-sources.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.tools_1.0.1.202202021419/lib/javatuples-1.2.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.graph_1.0.1.202202031001.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../com.google.inject_5.0.1.v20210324-2015.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../fr.irisa.cairn.graph.guice_1.0.1.202202031001.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.algebra_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.scop_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.scop.bridge.clast_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.scop.dtiler_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.scop.cgenerator2_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../edu.csu.melange.alphabets_0.9.6.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtext_2.27.0.v20220530-0355.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtext.util_2.27.0.v20220530-0355.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../javax.inject_1.0.0.v20220405-0441.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.prdg_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.prdg.adapter_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.prdg.scheduling_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtext.xbase_2.27.0.v20220530-0402.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtext.common.types_2.27.0.v20220530-0402.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtend.lib_2.27.0.v20220530-0353.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.eclipse.xtend.lib.macro_2.27.0.v20220530-0353.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.polymodel.matrix_1.0.0.202401210902.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../tom.mapping_1.0.1.202202021203.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${ant.library.dir}/../../org.aopalliance_1.0.0.v20230720-0728.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.ecore_2.27.0.v20220426-0617.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.common_2.25.0.v20220325-0806.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtext.xbase.lib_2.27.0.v20220530-0353.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="com.google.guava_30.1.0.v20210127-2300.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.ecore.xcore.lib_1.6.0.v20210405-0628.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.core.runtime_3.25.0.v20220506-1157.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.osgi_3.18.0.v20220516-2155.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.codehaus.groovy.eclipse.frameworkAdapter_5.3.0.v202403311436-e2206.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.osgi.compatibility.state_1.2.600.v20220207-1403.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.equinox.common_3.16.100.v20220315-2327.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.core.jobs_3.13.0.v20220512-1935.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.equinox.registry_3.11.100.v20211021-1418.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.equinox.preferences_3.10.0.v20220503-1634.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.osgi.service.prefs_1.1.2.202109301733.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.core.contenttype_3.8.100.v20210910-0640.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.equinox.app_1.6.100.v20211021-1418.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.ecore.xmi_2.16.0.v20190528-0725.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.mwe.core_1.7.0.v20220519-1115.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.apache.commons.cli_1.6.0.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.mwe2.runtime_2.13.0.v20220519-1115.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.emf.mwe.utils_1.7.0.v20220519-1115.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.apache.log4j_1.2.25.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.apache.commons.logging_1.2.0.v20180409-1502.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.antlr.runtime_3.2.0.v20220404-1927.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="edu.csu.melange.jnimap.cloog_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="fr.irisa.cairn.jnimap.runtime_1.4.0.202202030956.jar"/>
+            <zipfileset dir="${ant.library.dir}/../..//fr.irisa.cairn.eclipse.tom_2.10.6.202202011652/libs" includes="aircube-bundle.jar"/>
+            <fileset dir="${ant.library.dir}/../..//fr.irisa.cairn.tools_1.0.1.202202021419"/>
+            <zipfileset dir="${ant.library.dir}/../..//fr.irisa.cairn.tools_1.0.1.202202021419/lib" includes="javatuples-1.2-javadoc.jar"/>
+            <zipfileset dir="${ant.library.dir}/../..//fr.irisa.cairn.tools_1.0.1.202202021419/lib" includes="javatuples-1.2-sources.jar"/>
+            <zipfileset dir="${ant.library.dir}/../..//fr.irisa.cairn.tools_1.0.1.202202021419/lib" includes="javatuples-1.2.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="fr.irisa.cairn.graph_1.0.1.202202031001.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="com.google.inject_5.0.1.v20210324-2015.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="fr.irisa.cairn.graph.guice_1.0.1.202202031001.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.algebra_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.scop_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.scop.bridge.clast_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.scop.dtiler_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.scop.cgenerator2_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="edu.csu.melange.alphabets_0.9.6.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtext_2.27.0.v20220530-0355.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtext.util_2.27.0.v20220530-0355.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="javax.inject_1.0.0.v20220405-0441.jar"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/org.polymodel/bin"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/edu.csu.melange.jnimap.isl/bin"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/org.polymodel.isl/bin"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.prdg_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.prdg.adapter_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.prdg.scheduling_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtext.xbase_2.27.0.v20220530-0402.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtext.common.types_2.27.0.v20220530-0402.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtend.lib_2.27.0.v20220530-0353.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.eclipse.xtend.lib.macro_2.27.0.v20220530-0353.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.polymodel.matrix_1.0.0.202401210902.jar"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="tom.mapping_1.0.1.202202021203.jar"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/org.polymodel.polyhedralIR/bin"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/org.polymodel.polyhedralIR.codegen/bin"/>
+            <fileset dir="${basedir}../../../alphaz/bundles/edu.csu.melange.alphaz.mde/bin"/>
+            <zipfileset dir="${ant.library.dir}/../../" includes="org.aopalliance_1.0.0.v20230720-0728.jar"/>
         </jar>
     </target>
 </project>
