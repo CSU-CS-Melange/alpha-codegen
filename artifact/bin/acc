@@ -16,16 +16,27 @@ set -e
 
 function usage {
   echo "usage:" 
-  echo "  $BASE_NAME [-m] [-o out_dir] alpha_file";
-  echo "  $BASE_NAME [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
+  echo "  $BASE_NAME [-m] [-o out_dir] [-d] alpha_file";
+  echo "  $BASE_NAME [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir] [-d]"
+  echo "             [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
   echo "options:"
-  echo "    -v1, --gen-v1-from   :  Input Alpha file (*.alpha) used to generate makefile,"
-  echo "                            wrapper, and verification files" 
-  echo "    -v2, --gen-v2-from   :  Input Alpha file (*.alpha) used to generate main system"
-  echo "    -o,  --out-dir       :  Directory in which to place the output files, if the"
-  echo "                            path does not exist then it will be created (default: .)"
-  echo "    -m,  --make          :  Run make to build the generated file. Note, this may"
-  echo "                            fail if both v1 and v2 files have not been generated."
+  echo "    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,"
+  echo "                                 wrapper, and verification files"
+  echo "    -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system"
+  echo "    -o,  --out-dir             : Directory in which to place the output files, if the"
+  echo "                                 path does not exist then it will be created (default: .)"
+  echo "    -m,  --make                : Run make to build the generated file. Note, this may"
+  echo "                                 fail if both v1 and v2 files have not been generated."
+  echo "                                 Cannot be used with -s since multiple versions may be"
+  echo "                                 generated. (default: false)"
+  echo "    -s,  --simplify            : Run the simplifying reductions algorithm on v2 input"
+  echo "                                 (default: false)"
+  echo "         --num-simplifications : Stop after a number of simplifications is found, or the"
+  echo "                                 exploration terminates, whichever comes first (default: 1)"
+  echo "         --target-complexity   : Target simplified complexity (default: strictly smaller"
+  echo "                                 than the input program's complexity) "
+  echo "         --try-splitting       : Consider splits during simplification as needed"
+  echo "    -d,  --display-debug-info  : Display debug information"
   echo "arguments:"
   echo "    alpha_file           :  Input Alpha file used to generate main ystem, makefile,"
   echo "                            wrapper, and verification files" 
@@ -63,6 +74,7 @@ function assert_dependencies_exist {
 #######################################################################
 
 out_dir='.'
+debug=0
 
 params=""
 while (( "$#" )); do
@@ -74,6 +86,41 @@ while (( "$#" )); do
     -m|--make)
       MAKE=1;
       shift 1
+      ;;
+    -d|--debug)
+      debug=1;
+      shift 1
+      ;;
+    -s|--simplify)
+      simplify=1;
+      shift 1
+      ;;
+    --num-simplifications)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        num_simplifications=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    --target-complexity)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        target_complexity=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    --try-splitting)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        try_splitting=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
       ;;
     -v1|--gen-v1-from)
       if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
@@ -152,11 +199,19 @@ if [[ "$choice" == "2" || "$choice" == "0" ]]; then
   
   # using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
   echo "[$BASE_NAME]: reading '$v2_gen_alpha_file' file"
-  java -jar ${BASE_DIR}/alpha.glue.v2.jar \
-    $v2_gen_alpha_file \
-    $out_dir \
-    $choice
-  assert_file_exists ${out_dir}/${system_name}.c
+  export ACC_ALPHA_FILE=$v2_gen_alpha_file \
+         ACC_OUT_DIR=$out_dir \
+         ACC_CHOICE=$choice \
+         ACC_SIMPLIFY=$simplify \
+         ACC_NUM_SIMPLIFICATIONS=$num_simplifications \
+         ACC_TARGET_COMPLEXITY=$target_complexity \
+         ACC_DEBUG=$debug
+  java -jar ${BASE_DIR}/alpha.glue.v2.jar
+  if [[ -z "$simplify" ]]; then
+    assert_file_exists ${out_dir}/${system_name}.c
+  else
+    assert_file_exists ${out_dir}/simplifications/v0/${system_name}.c
+  fi
 fi
 
 #######################################################################
@@ -170,10 +225,10 @@ if [[ "$choice" == "1" || "$choice" == "0" ]]; then
 
   # generate *.ab file
   echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
-  java -jar ${BASE_DIR}/alpha.glue.v2.jar \
-    $v1_gen_alpha_file \
-    $out_dir \
-    1
+  export ACC_ALPHA_FILE=$v1_gen_alpha_file \
+         ACC_OUT_DIR=$out_dir \
+         ACC_CHOICE=1
+  java -jar ${BASE_DIR}/alpha.glue.v2.jar
   assert_file_exists ${out_dir}/${system_name}.ab
   
   echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
@@ -190,7 +245,9 @@ fi
 # build generated C file with make
 #######################################################################
 
-if [[ -n "$MAKE" ]]; then
+if [[ -n "$MAKE" && -z "$simplify" ]]; then
   echo "[$BASE_NAME]: building with make"
   make -C $out_dir
+elif [[ -n "$MAKE" && -n "$simplify" ]]; then
+  echo "[$BASE_NAME]: skipping make step since -s was passed"
 fi
