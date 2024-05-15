@@ -45,6 +45,8 @@ public class GenerateNewWriteC {
 
   private static int targetComplexity = GenerateNewWriteC.parseInt(System.getenv("ACC_TARGET_COMPLEXITY"), (-1));
 
+  private static boolean trySplitting = (System.getenv("ACC_TRY_SPLITTING") != null);
+
   public static int parseInt(final String str, final int defaultValue) {
     int _xblockexpression = (int) 0;
     {
@@ -72,6 +74,11 @@ public class GenerateNewWriteC {
       }
       if (((GenerateNewWriteC.choice == 2) || (GenerateNewWriteC.choice == 0))) {
         final OptimalSimplifyingReductions.State[] states = GenerateNewWriteC.optimize(system);
+        int _size_2 = ((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)).size();
+        boolean _equals = (_size_2 == 0);
+        if (_equals) {
+          System.exit(1);
+        }
         final Function1<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>> _function = (OptimalSimplifyingReductions.State s) -> {
           int _indexOf = ((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)).indexOf(s);
           return Pair.<Integer, OptimalSimplifyingReductions.State>of(Integer.valueOf(_indexOf), s);
@@ -118,7 +125,7 @@ public class GenerateNewWriteC {
         int _minus = (_complexity - 1);
         GenerateNewWriteC.targetComplexity = _minus;
       }
-      final OptimalSimplifyingReductions osr = OptimalSimplifyingReductions.apply(system, GenerateNewWriteC.numOptimizations, GenerateNewWriteC.targetComplexity);
+      final OptimalSimplifyingReductions osr = OptimalSimplifyingReductions.apply(system, GenerateNewWriteC.numOptimizations, GenerateNewWriteC.targetComplexity, GenerateNewWriteC.trySplitting);
       _xblockexpression = osr.optimizations.get(Integer.valueOf(GenerateNewWriteC.targetComplexity));
     }
     return ((OptimalSimplifyingReductions.State[])Conversions.unwrapArray(_xblockexpression, OptimalSimplifyingReductions.State.class));

@@ -12,7 +12,7 @@ BASE_DIR=`dirname $0`
 BASE_NAME=`basename $0`
 
 # exit if any intermediate steps fail
-set -e
+#set -e
 
 function usage {
   echo "usage:" 
@@ -36,7 +36,6 @@ function usage {
   echo "         --target-complexity   : Target simplified complexity (default: strictly smaller"
   echo "                                 than the input program's complexity) "
   echo "         --try-splitting       : Consider splits during simplification as needed"
-  echo "    -d,  --display-debug-info  : Display debug information"
   echo "arguments:"
   echo "    alpha_file           :  Input Alpha file used to generate main ystem, makefile,"
   echo "                            wrapper, and verification files" 
@@ -87,12 +86,12 @@ while (( "$#" )); do
       MAKE=1;
       shift 1
       ;;
-    -d|--debug)
-      debug=1;
-      shift 1
-      ;;
     -s|--simplify)
       simplify=1;
+      shift 1
+      ;;
+    --try-splitting)
+      try_splitting=1;
       shift 1
       ;;
     --num-simplifications)
@@ -107,15 +106,6 @@ while (( "$#" )); do
     --target-complexity)
       if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
         target_complexity=$2
-        shift 2
-      else
-        echo "argument missing for -- $1" >&2
-        exit 1
-      fi
-      ;;
-    --try-splitting)
-      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-        try_splitting=$2
         shift 2
       else
         echo "argument missing for -- $1" >&2
@@ -205,12 +195,21 @@ if [[ "$choice" == "2" || "$choice" == "0" ]]; then
          ACC_SIMPLIFY=$simplify \
          ACC_NUM_SIMPLIFICATIONS=$num_simplifications \
          ACC_TARGET_COMPLEXITY=$target_complexity \
-         ACC_DEBUG=$debug
+         ACC_TRY_SPLITTING=$try_splitting
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
+  statuz="$?"
   if [[ -z "$simplify" ]]; then
     assert_file_exists ${out_dir}/${system_name}.c
   else
-    assert_file_exists ${out_dir}/simplifications/v0/${system_name}.c
+    # there should be at least one simplified file
+    if [[ "$statuz" != "0" ]]; then 
+      echo "[$BASE_NAME]: found no ${target_complexity}D simplifications, exiting"
+      exit 1
+    fi
+    for f in ${out_dir}/simplifications/*/*.alpha
+    do
+      assert_file_exists ${out_dir}/simplifications/v0/${system_name}.c
+    done
   fi
 fi
 
