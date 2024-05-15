@@ -61,6 +61,154 @@ Note, this depends on java and your `JAVA_HOME` environment variable must point 
 Alternatively, you can follow the steps in the following sections to build everything from source.
 
 
+# Usage
+
+Take a single-system Alpha program such as the following,
+```
+// test.alpha
+affine prefix_sum [N] -> {: 10<N}
+	inputs X : [N]
+	outputs	Y : [N]
+	let	Y = reduce(+, (i,j->i), {: 0<=j<=i} : X[j]);
+.
+```
+
+## Generate demand driven code with no optimization
+
+Run the `acc` script as follows to generate C code for the `test.alpha` program above,
+```
+$ acc -o out-1 test.alpha 
+[acc]: reading 'test.alpha' file
+[acc]: created 'out-1/prefix_sum.c' file
+[acc]: reading 'test.alpha' file
+[acc]: created 'out-1/prefix_sum.ab' file
+[acc]: reading 'out-1/prefix_sum.ab' file
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 3) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[acc]: created 'out-1/prefix_sum-wrapper.c' file
+[acc]: created 'out-1/prefix_sum_verify.c' file
+[acc]: created 'out-1/Makefile' file
+```
+
+The `out-1` directory will now look like this,
+```
+out-1
+├── Makefile
+├── prefix_sum-wrapper.c
+├── prefix_sum.ab
+├── prefix_sum.c
+└── prefix_sum_verify.c
+```
+Compile with make,
+```
+$ make -C out-1
+cc prefix_sum.c -o prefix_sum.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
+clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
+cc prefix_sum-wrapper.c -o prefix_sum prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm
+cc prefix_sum-wrapper.c -o prefix_sum.check prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm -DCHECKING
+cc prefix_sum_verify.c -o prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
+clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
+cc prefix_sum-wrapper.c -o prefix_sum.verify prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY
+cc prefix_sum-wrapper.c -o prefix_sum.verify-rand prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY -DRANDOM
+```
+This will produce several executables,
+```
+out/
+├── Makefile
+├── prefix_sum              <-- This is the main binary
+├── prefix_sum-wrapper.c
+├── prefix_sum.ab
+├── prefix_sum.c
+├── prefix_sum.check        <-- Allows for manually checking output
+├── prefix_sum.o
+├── prefix_sum.verify       <-- Asserts v2 and v1 WriteC outputs are equivalent
+├── prefix_sum.verify-rand
+├── prefix_sum_verify.c
+└── prefix_sum_verify.o
+```
+
+And the program can be run,
+```
+./out-1/prefix_sum 100
+Execution time : 0.000014 sec.
+
+./out-1/prefix_sum.verify-rand 100
+Execution time : 0.000005 sec.
+TEST for Y PASSED
+```
+
+The verification targets use the old WriteC.
+This can be used to bug check the new code generator (assuming the same bug is not also present in the old one).
+If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
+This can also be used to sanity check that any optimized versions compute the same answer (i.e., remain semantically equivalent).
+
+## Generate demand driven code with simplification
+
+Take the same input prefix sum program above and run the `acc` script but this time pass the `-s` option and ask to report up to 10 simplifications with the `--num-simplifications 10` option,
+```
+$ acc -o out-2 -s --num-simplifications 10 test.alpha
+[acc]: reading 'test.alpha' file
+[alpha]: found simplification/v0/prefix_sum.alpha
+[alpha]: found simplification/v1/prefix_sum.alpha
+[acc]: created 'out-2/simplifications/v0/prefix_sum.c' file
+[acc]: created 'out-2/simplifications/v0/prefix_sum.c' file
+[acc]: reading 'test.alpha' file
+[alpha]: found simplification/v0/prefix_sum.alpha
+[alpha]: found simplification/v1/prefix_sum.alpha
+[acc]: created 'out-2/prefix_sum.ab' file
+[acc]: reading 'out-2/prefix_sum.ab' file
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 3) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[CLooG] INFO: 1 dimensions (over 2) are scalar.
+[acc]: created 'out-2/prefix_sum-wrapper.c' file
+[acc]: created 'out-2/prefix_sum_verify.c' file
+[acc]: created 'out-2/Makefile' file
+```
+Now the `out-2` directory looks like this,
+```
+out-2
+├── Makefile
+├── prefix_sum-wrapper.c
+├── prefix_sum.ab
+├── prefix_sum_verify.c
+└── simplifications
+    ├── v0
+    │   ├── prefix_sum.alpha
+    │   └── prefix_sum.c
+    └── v1
+        ├── prefix_sum.alpha
+        └── prefix_sum.c
+```
+We see the two simplifications possible the prefix sum.
+The corresponding Alpha and C files are written to the `simplification` subdirectory of the output directory.
+
+Now you can simply move the simplified `*.c` files to the top level directory, run make, and run the verification target,
+```
+$ cp out-2/simplifications/v0/prefix_sum.c out-2/
+$ make -C out-2
+cc prefix_sum.c -o prefix_sum.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
+clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
+cc prefix_sum-wrapper.c -o prefix_sum prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm
+cc prefix_sum-wrapper.c -o prefix_sum.check prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm -DCHECKING
+cc prefix_sum_verify.c -o prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
+clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
+cc prefix_sum-wrapper.c -o prefix_sum.verify prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY
+cc prefix_sum-wrapper.c -o prefix_sum.verify-rand prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY -DRANDOM
+
+$ ./out-2/prefix_sum.verify-rand 100
+Execution time : 0.000011 sec.
+TEST for Y PASSED
+```
+
+The `*.verify-rand` executable compares the output of the simplified alpha program using the new v2 code generator to the output of the input (non-simplified) alpha program using the old v1 code generator.
+As expected, they should produce the same answer.
+
+
 # Build from source
 
 Follow the steps below to build everything from source in a local Eclipse instance.
@@ -165,70 +313,3 @@ $ java -jar artifact/bin/alpha.glue.v1.jar
 usage: alpha_v1_file out_dir
 ```
 
-## Generate code
-
-Given a single-system Alpha program such as the following,
-```
-// test.alpha
-affine prefix_sum [N] -> {: 10<N}
-	inputs X : [N]
-	outputs	Y : [N]
-	let	Y = reduce(+, (i,j->i), {: 0<=j<=i} : X[j]);
-.
-```
-
-Run the `acc` script as follows to generate and compile everything in a new directory called `out`,
-```
-$ ./artifact/bin/acc -o out test.alpha
-[acc]: reading 'test.alpha' file
-[acc]: created 'out/prefix_sum.ab' file
-[acc]: created 'out/prefix_sum.c' file
-[acc]: reading 'out/prefix_sum.ab' file
-[CLooG] INFO: 1 dimensions (over 2) are scalar.
-[CLooG] INFO: 1 dimensions (over 3) are scalar.
-[CLooG] INFO: 1 dimensions (over 2) are scalar.
-[CLooG] INFO: 1 dimensions (over 2) are scalar.
-[CLooG] INFO: 1 dimensions (over 2) are scalar.
-[acc]: created 'out/prefix_sum-wrapper.c' file
-[acc]: created 'out/prefix_sum_verify.c' file
-[acc]: created 'out/Makefile' file
-[acc]: building with make
-cc prefix_sum.c -o prefix_sum.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
-clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
-cc prefix_sum-wrapper.c -o prefix_sum prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm
-cc prefix_sum-wrapper.c -o prefix_sum.check prefix_sum.o  -O3  -std=c99  -I/usr/include/malloc/ -lm -DCHECKING
-cc prefix_sum_verify.c -o prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -c
-clang: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]
-cc prefix_sum-wrapper.c -o prefix_sum.verify prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY
-cc prefix_sum-wrapper.c -o prefix_sum.verify-rand prefix_sum.o  prefix_sum_verify.o -O3  -std=c99  -I/usr/include/malloc/ -lm -DVERIFY -DRANDOM
-```
-
-The generated files, in the `out` directory, will look like this,
-```
-out/
-├── Makefile
-├── prefix_sum              <-- This is the main binary
-├── prefix_sum-wrapper.c
-├── prefix_sum.ab
-├── prefix_sum.c
-├── prefix_sum.check        <-- Allows for manually checking output
-├── prefix_sum.o
-├── prefix_sum.verify       <-- Asserts v2 and v1 WriteC outputs are equivalent
-├── prefix_sum.verify-rand
-├── prefix_sum_verify.c
-└── prefix_sum_verify.o
-```
-
-And the program can be run,
-```
-$ ./out/prefix_sum 30
-Execution time : 0.000008 sec.
-
-$ ./out/prefix_sum.verify-rand 30
-Execution time : 0.000011 sec.
-TEST for Y PASSED
-```
-
-The verification targets use the old WriteC.
-This can be used to bug check the new code generator (assuming the same bug is not also present in the old one).
-If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
