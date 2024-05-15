@@ -27,11 +27,11 @@ class GenerateNewWriteC {
 	
 	static String alphaFile = getenv('ACC_ALPHA_FILE')
 	static String outDir = getenv('ACC_OUT_DIR')
-	static int choice = parseInt(getenv('ACC_CHOICE'), 0)
-	static boolean runSimplification = getenv('ACC_SIMPLIFY') !== null
+	static boolean runLegacySave = !(getenv('ACC_LEGACY_SAVE').isNullOrEmpty)
+	static boolean runSimplification = !(getenv('ACC_SIMPLIFY').isNullOrEmpty)
 	static int numOptimizations = parseInt(getenv('ACC_NUM_SIMPLIFICATIONS'), 1)
 	static int targetComplexity = parseInt(getenv('ACC_TARGET_COMPLEXITY'), -1)
-	static boolean trySplitting = getenv('ACC_TRY_SPLITTING') !== null
+	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
@@ -50,31 +50,31 @@ class GenerateNewWriteC {
 		val system = root.systems.get(0)
 		(system.systemBodies.size > 1).thenQuitWithError('error: only systems with a single body are supported by this tool')
 		
-		if (choice == 1 || choice == 0) {			
+		if (runLegacySave) {			
 			// Generate the v1 alpha file from the input program along
 			system.generateV1Alpha(outDir)
 		}
 		
-		if (choice == 2 || choice == 0) {
+		if (runSimplification) {
 			// Hooks to expose optimization
+			val states = system.optimize;
+			(states === null).thenQuitWithError('No simplifications found, exiting')
 			
-			val states = system.optimize
-			if (states.size == 0) {
-				System.exit(1)
-			}
 			states.map[s | states.indexOf(s) -> s].forEach[pair |
 				val state = pair.value
 				val stateSystem = state.root.systems.get(0)
 				val simplificationOutDir = '''«outDir»/simplifications/v«pair.key»'''
 				stateSystem.generateWriteC(simplificationOutDir)
 				AlphaModelSaver.writeToFile('''«simplificationOutDir»/«system.name».alpha''', state.show.toString)
-			]			
+			]
+		} else {
+			system.generateWriteC(outDir)
 		}
 	}
 	
 	/** Run the simplifying reductions algorithm */
 	def static State[] optimize(AlphaSystem system) {
-		if (! runSimplification) return #[new State(system.systemBodies.get(0), newLinkedList)]
+		if (! runSimplification) return null
 		
 //		OptimalSimplifyingReductions.DEBUG = debug
 //		SimplifyingReductions.DEBUG = debug

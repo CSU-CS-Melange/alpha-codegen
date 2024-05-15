@@ -8,16 +8,13 @@ import alpha.model.AlphaModelSaver;
 import alpha.model.AlphaRoot;
 import alpha.model.AlphaSystem;
 import alpha.model.ComplexityCalculator;
-import alpha.model.SystemBody;
 import alpha.model.transformation.automation.OptimalSimplifyingReductions;
 import alpha.model.util.ShowLegacyAlpha;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.eclipse.xtend2.lib.StringConcatenation;
-import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
@@ -37,15 +34,15 @@ public class GenerateNewWriteC {
 
   private static String outDir = System.getenv("ACC_OUT_DIR");
 
-  private static int choice = GenerateNewWriteC.parseInt(System.getenv("ACC_CHOICE"), 0);
+  private static boolean runLegacySave = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_LEGACY_SAVE")));
 
-  private static boolean runSimplification = (System.getenv("ACC_SIMPLIFY") != null);
+  private static boolean runSimplification = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_SIMPLIFY")));
 
   private static int numOptimizations = GenerateNewWriteC.parseInt(System.getenv("ACC_NUM_SIMPLIFICATIONS"), 1);
 
   private static int targetComplexity = GenerateNewWriteC.parseInt(System.getenv("ACC_TARGET_COMPLEXITY"), (-1));
 
-  private static boolean trySplitting = (System.getenv("ACC_TRY_SPLITTING") != null);
+  private static boolean trySplitting = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_TRY_SPLITTING")));
 
   public static int parseInt(final String str, final int defaultValue) {
     int _xblockexpression = (int) 0;
@@ -69,16 +66,12 @@ public class GenerateNewWriteC {
       final AlphaSystem system = root.getSystems().get(0);
       int _size_1 = system.getSystemBodies().size();
       GenerateNewWriteC.thenQuitWithError((_size_1 > 1), "error: only systems with a single body are supported by this tool");
-      if (((GenerateNewWriteC.choice == 1) || (GenerateNewWriteC.choice == 0))) {
+      if (GenerateNewWriteC.runLegacySave) {
         GenerateNewWriteC.generateV1Alpha(system, GenerateNewWriteC.outDir);
       }
-      if (((GenerateNewWriteC.choice == 2) || (GenerateNewWriteC.choice == 0))) {
+      if (GenerateNewWriteC.runSimplification) {
         final OptimalSimplifyingReductions.State[] states = GenerateNewWriteC.optimize(system);
-        int _size_2 = ((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)).size();
-        boolean _equals = (_size_2 == 0);
-        if (_equals) {
-          System.exit(1);
-        }
+        GenerateNewWriteC.thenQuitWithError((states == null), "No simplifications found, exiting");
         final Function1<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>> _function = (OptimalSimplifyingReductions.State s) -> {
           int _indexOf = ((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)).indexOf(s);
           return Pair.<Integer, OptimalSimplifyingReductions.State>of(Integer.valueOf(_indexOf), s);
@@ -102,6 +95,8 @@ public class GenerateNewWriteC {
           AlphaModelSaver.writeToFile(_builder_1.toString(), state.show().toString());
         };
         ListExtensions.<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>>map(((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)), _function).forEach(_function_1);
+      } else {
+        GenerateNewWriteC.generateWriteC(system, GenerateNewWriteC.outDir);
       }
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
@@ -115,10 +110,7 @@ public class GenerateNewWriteC {
     List<OptimalSimplifyingReductions.State> _xblockexpression = null;
     {
       if ((!GenerateNewWriteC.runSimplification)) {
-        SystemBody _get = system.getSystemBodies().get(0);
-        LinkedList<OptimalSimplifyingReductions.DynamicProgrammingStep> _newLinkedList = CollectionLiterals.<OptimalSimplifyingReductions.DynamicProgrammingStep>newLinkedList();
-        OptimalSimplifyingReductions.State _state = new OptimalSimplifyingReductions.State(_get, _newLinkedList);
-        return new OptimalSimplifyingReductions.State[] { _state };
+        return null;
       }
       if ((GenerateNewWriteC.targetComplexity == (-1))) {
         int _complexity = ComplexityCalculator.complexity(system);

@@ -44,7 +44,15 @@ function usage {
   echo "At least one input alpha file must be specified."
 }
 
-function assert_file_exists {
+function assert_is_file_if_non_null {
+  filepath=$1
+  if [[ -n "$filepath" && ! -f "$filepath" ]]; then
+    echo "[$BASE_NAME]: error '$filepath' does not appear to be a regular file, exiting"
+    exit 1
+  fi
+}
+
+function assert_file_created {
   file_name=$1
   if [[ ! -f $file_name ]]; then
     echo "[$BASE_NAME]: error, failed to create the file '$file_name', exiting"
@@ -73,7 +81,6 @@ function assert_dependencies_exist {
 #######################################################################
 
 out_dir='.'
-debug=0
 
 params=""
 while (( "$#" )); do
@@ -153,24 +160,34 @@ done
 
 eval set -- "$params";
 
+# assert that at least one input alpha file was specified
 if [[ -z "$v1_file" && -z "$v2_file" && -z "$1" ]]; then
   echo "No input alpha_file was specified"
   usage
   exit 1
-fi 
+fi
+
+# Assert that the args passed as files are actually files
+assert_is_file_if_non_null $v1_file
+assert_is_file_if_non_null $v2_file
+assert_is_file_if_non_null $1
+
+# Generate new writeC if a v2 file is specifed or if the default positional
+# arg $1 is specified. Similary, generate old supportingC if a v1 file is
+# specified or if the default positional arg is specified.
 
 v1_gen_alpha_file=$1
-if [[ -n "$v1_file" ]]; then v1_gen_alpha_file=$v1_file; fi
+gen_legacy_supportingC=$1
+if [[ -n "$v1_file" ]]; then 
+  v1_gen_alpha_file=$v1_file; 
+  gen_legacy_supportingC=1
+fi
 
 v2_gen_alpha_file=$1
-if [[ -n "$v2_file" ]]; then v2_gen_alpha_file=$v2_file; fi
-
-if   [[ -z "$v1_file" && -n "$v2_file" ]]; then
-  choice=2
-elif [[ -n "$v1_file" && -z "$v2_file" ]]; then
-  choice=1
-else
-  choice=0
+gen_new_writeC=$1
+if [[ -n "$v2_file" ]]; then 
+  v2_gen_alpha_file=$v2_file; 
+  gen_new_writeC=1
 fi
 
 # check and exit if dependencies are not available
@@ -183,7 +200,7 @@ mkdir -p $out_dir
 # codegen - system C file
 #######################################################################
 
-if [[ "$choice" == "2" || "$choice" == "0" ]]; then
+if [[ -n "$gen_new_writeC" ]]; then
   # grab the system name from the alpha_file
   system_name=`cat $v2_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
   
@@ -191,7 +208,6 @@ if [[ "$choice" == "2" || "$choice" == "0" ]]; then
   echo "[$BASE_NAME]: reading '$v2_gen_alpha_file' file"
   export ACC_ALPHA_FILE=$v2_gen_alpha_file \
          ACC_OUT_DIR=$out_dir \
-         ACC_CHOICE=$choice \
          ACC_SIMPLIFY=$simplify \
          ACC_NUM_SIMPLIFICATIONS=$num_simplifications \
          ACC_TARGET_COMPLEXITY=$target_complexity \
@@ -199,16 +215,13 @@ if [[ "$choice" == "2" || "$choice" == "0" ]]; then
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   statuz="$?"
   if [[ -z "$simplify" ]]; then
-    assert_file_exists ${out_dir}/${system_name}.c
+    assert_file_created ${out_dir}/${system_name}.c
   else
     # there should be at least one simplified file
-    if [[ "$statuz" != "0" ]]; then 
-      echo "[$BASE_NAME]: found no ${target_complexity}D simplifications, exiting"
-      exit 1
-    fi
+    if [[ "$statuz" != "0" ]]; then exit 1; fi
     for f in ${out_dir}/simplifications/*/*.alpha
     do
-      assert_file_exists ${out_dir}/simplifications/v0/${system_name}.c
+      assert_file_created ${out_dir}/simplifications/v0/${system_name}.c
     done
   fi
 fi
@@ -217,8 +230,7 @@ fi
 # codegen - wrapper & verify C files and Makefile
 #######################################################################
 
-if [[ "$choice" == "1" || "$choice" == "0" ]]; then
-
+if [[ -n "$gen_legacy_supportingC" ]]; then
   # grab the system name from the alpha_file
   system_name=`cat $v1_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
 
@@ -226,18 +238,18 @@ if [[ "$choice" == "1" || "$choice" == "0" ]]; then
   echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
   export ACC_ALPHA_FILE=$v1_gen_alpha_file \
          ACC_OUT_DIR=$out_dir \
-         ACC_CHOICE=1
+         ACC_LEGACY_SAVE=1
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
-  assert_file_exists ${out_dir}/${system_name}.ab
+  assert_file_created ${out_dir}/${system_name}.ab
   
   echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
   # using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
   java -jar ${BASE_DIR}/alpha.glue.v1.jar \
     ${out_dir}/${system_name}.ab \
     $out_dir
-  assert_file_exists ${out_dir}/${system_name}-wrapper.c
-  assert_file_exists ${out_dir}/${system_name}_verify.c
-  assert_file_exists ${out_dir}/Makefile
+  assert_file_created ${out_dir}/${system_name}-wrapper.c
+  assert_file_created ${out_dir}/${system_name}_verify.c
+  assert_file_created ${out_dir}/Makefile
 fi
 
 #######################################################################
