@@ -18,7 +18,7 @@ function usage {
   echo "usage:" 
   echo "  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
   echo "      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
-  echo "      [alpha_file]"
+  echo "      [ALPHA_FILE]"
   echo "options:"
   echo "    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,"
   echo "                                 wrapper, and verification files"
@@ -37,9 +37,9 @@ function usage {
   echo "                                 the input program's complexity)"
   echo "         --try-splitting       : Consider splits during simplification (default: false)"
   echo "arguments:"
-  echo "    alpha_file                 :  Input Alpha file used to generate main ystem, makefile,"
-  echo "                                  wrapper, and verification files. (required if neither "
-  echo "                                  -v1 nor -v2 is specified)"
+  echo "    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,"
+  echo "                                 wrapper, and verification files. (required if neither "
+  echo "                                 -v1 nor -v2 is specified)"
   echo ""
 }
 

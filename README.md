@@ -12,7 +12,7 @@ $ ./artifact/bin/acc --help
 usage:
   acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]
       [-s [--target-complexity] [--num-simplifications] [--try-splitting]]
-      [alpha_file]
+      [ALPHA_FILE]
 options:
     -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,
                                  wrapper, and verification files
@@ -31,9 +31,9 @@ options:
                                  the input program's complexity)
          --try-splitting       : Consider splits during simplification (default: false)
 arguments:
-    alpha_file                 :  Input Alpha file used to generate main ystem, makefile,
-                                  wrapper, and verification files. (required if neither 
-                                  -v1 nor -v2 is specified)
+    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,
+                                 wrapper, and verification files. (required if neither 
+                                 -v1 nor -v2 is specified)
 ```
 
 # Installation
