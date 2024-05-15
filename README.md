@@ -8,12 +8,32 @@ This repository contains two bundles, one for each, which wrap and expose the re
 
 The `acc` utility glues together the codegen functionality from both versions and has the following usage,
 ```
-$ acc
-usage: acc alpha_file [output_directory]
-parameters:
-     alpha_file       :  input Alpha source file
-     output_directory :  directory in which to place the output files, if the path
-                         does not exist then it will be created (default: .)
+$ ./artifact/bin/acc --help
+usage:
+  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]
+      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]
+      [ALPHA_FILE]
+options:
+    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,
+                                 wrapper, and verification files
+    -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system
+    -o,  --out-dir             : Directory in which to place the output files, if the
+                                 path does not exist then it will be created (default: .)
+    -m,  --make                : Run make to build the generated files. Note, this may
+                                 fail if both v1 and v2 files have not been generated.
+                                 Cannot be used with -s since multiple versions may be
+                                 generated. (default: false)
+    -s,  --simplify            : Run the simplifying reductions algorithm on v2 input
+                                 (default: false)
+         --num-simplifications : Stop after a number of simplifications is found, or the
+                                 exploration terminates, whichever comes first (default: 1)
+         --target-complexity   : Target simplified complexity (default: one less than
+                                 the input program's complexity)
+         --try-splitting       : Consider splits during simplification (default: false)
+arguments:
+    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,
+                                 wrapper, and verification files. (required if neither 
+                                 -v1 nor -v2 is specified)
 ```
 
 # Installation
@@ -159,7 +179,7 @@ affine prefix_sum [N] -> {: 10<N}
 
 Run the `acc` script as follows to generate and compile everything in a new directory called `out`,
 ```
-$ ./artifact/bin/acc test.alpha out
+$ ./artifact/bin/acc -o out test.alpha
 [acc]: reading 'test.alpha' file
 [acc]: created 'out/prefix_sum.ab' file
 [acc]: created 'out/prefix_sum.c' file
