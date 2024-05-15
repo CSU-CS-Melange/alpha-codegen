@@ -8,18 +8,18 @@ This repository contains two bundles, one for each, which wrap and expose the re
 
 The `acc` utility glues together the codegen functionality from both versions and has the following usage,
 ```
-$ ./artifact/bin/acc -h
+$ ./artifact/bin/acc --help
 usage:
-  acc [-m] [-o out_dir] [-d] alpha_file
-  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir] [-d]
-             [-s [--target-complexity] [--num-simplifications] [--try-splitting]]
+  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]
+      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]
+      [alpha_file]
 options:
     -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,
                                  wrapper, and verification files
     -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system
     -o,  --out-dir             : Directory in which to place the output files, if the
                                  path does not exist then it will be created (default: .)
-    -m,  --make                : Run make to build the generated file. Note, this may
+    -m,  --make                : Run make to build the generated files. Note, this may
                                  fail if both v1 and v2 files have not been generated.
                                  Cannot be used with -s since multiple versions may be
                                  generated. (default: false)
@@ -27,15 +27,13 @@ options:
                                  (default: false)
          --num-simplifications : Stop after a number of simplifications is found, or the
                                  exploration terminates, whichever comes first (default: 1)
-         --target-complexity   : Target simplified complexity (default: strictly smaller
-                                 than the input program's complexity) 
-         --try-splitting       : Consider splits during simplification as needed
+         --target-complexity   : Target simplified complexity (default: one less than
+                                 the input program's complexity)
+         --try-splitting       : Consider splits during simplification (default: false)
 arguments:
-    alpha_file           :  Input Alpha file used to generate main ystem, makefile,
-                            wrapper, and verification files
-
-The -v1 and -v2 options override the positional alpha_file arg if both are specified.
-At least one input alpha file must be specified.
+    alpha_file                 :  Input Alpha file used to generate main ystem, makefile,
+                                  wrapper, and verification files. (required if neither 
+                                  -v1 nor -v2 are specified)
 ```
 
 # Installation

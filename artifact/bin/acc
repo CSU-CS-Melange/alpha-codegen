@@ -16,16 +16,16 @@ BASE_NAME=`basename $0`
 
 function usage {
   echo "usage:" 
-  echo "  $BASE_NAME [-m] [-o out_dir] [-d] alpha_file";
-  echo "  $BASE_NAME [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir] [-d]"
-  echo "             [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
+  echo "  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
+  echo "      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
+  echo "      [alpha_file]"
   echo "options:"
   echo "    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,"
   echo "                                 wrapper, and verification files"
   echo "    -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system"
   echo "    -o,  --out-dir             : Directory in which to place the output files, if the"
   echo "                                 path does not exist then it will be created (default: .)"
-  echo "    -m,  --make                : Run make to build the generated file. Note, this may"
+  echo "    -m,  --make                : Run make to build the generated files. Note, this may"
   echo "                                 fail if both v1 and v2 files have not been generated."
   echo "                                 Cannot be used with -s since multiple versions may be"
   echo "                                 generated. (default: false)"
@@ -33,15 +33,14 @@ function usage {
   echo "                                 (default: false)"
   echo "         --num-simplifications : Stop after a number of simplifications is found, or the"
   echo "                                 exploration terminates, whichever comes first (default: 1)"
-  echo "         --target-complexity   : Target simplified complexity (default: strictly smaller"
-  echo "                                 than the input program's complexity) "
-  echo "         --try-splitting       : Consider splits during simplification as needed"
+  echo "         --target-complexity   : Target simplified complexity (default: one less than"
+  echo "                                 the input program's complexity)"
+  echo "         --try-splitting       : Consider splits during simplification (default: false)"
   echo "arguments:"
-  echo "    alpha_file           :  Input Alpha file used to generate main ystem, makefile,"
-  echo "                            wrapper, and verification files" 
+  echo "    alpha_file                 :  Input Alpha file used to generate main ystem, makefile,"
+  echo "                                  wrapper, and verification files. (required if neither "
+  echo "                                  -v1 nor -v2 are specified)"
   echo ""
-  echo "The -v1 and -v2 options override the positional alpha_file arg if both are specified."
-  echo "At least one input alpha file must be specified."
 }
 
 function assert_is_file_if_non_null {
