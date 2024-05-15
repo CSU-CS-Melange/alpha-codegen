@@ -33,7 +33,7 @@ options:
 arguments:
     alpha_file                 :  Input Alpha file used to generate main ystem, makefile,
                                   wrapper, and verification files. (required if neither 
-                                  -v1 nor -v2 are specified)
+                                  -v1 nor -v2 is specified)
 ```
 
 # Installation

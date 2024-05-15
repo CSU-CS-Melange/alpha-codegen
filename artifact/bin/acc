@@ -39,7 +39,7 @@ function usage {
   echo "arguments:"
   echo "    alpha_file                 :  Input Alpha file used to generate main ystem, makefile,"
   echo "                                  wrapper, and verification files. (required if neither "
-  echo "                                  -v1 nor -v2 are specified)"
+  echo "                                  -v1 nor -v2 is specified)"
   echo ""
 }
 
