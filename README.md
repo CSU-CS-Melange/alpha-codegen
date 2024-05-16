@@ -19,6 +19,8 @@ options:
     -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system
     -o,  --out-dir             : Directory in which to place the output files, if the
                                  path does not exist then it will be created (default: .)
+    -d,  --data-type           : Data type to use for program variables, may be 'int',
+                                 'long', 'float', or 'double' (default: 'float')
     -m,  --make                : Run make to build the generated files. Note, this may
                                  fail if both v1 and v2 files have not been generated.
                                  Cannot be used with -s since multiple versions may be

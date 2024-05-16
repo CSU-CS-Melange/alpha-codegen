@@ -1,11 +1,13 @@
 package alpha.glue.v2
 
+import alpha.codegen.BaseDataType
 import alpha.codegen.ProgramPrinter
 import alpha.codegen.writeC.SystemConverter
 import alpha.loader.AlphaLoader
 import alpha.model.AlphaModelSaver
 import alpha.model.AlphaSystem
 import alpha.model.transformation.automation.OptimalSimplifyingReductions
+import alpha.model.transformation.automation.OptimalSimplifyingReductions.State
 import alpha.model.util.ShowLegacyAlpha
 import java.io.File
 import java.io.FileWriter
@@ -13,8 +15,6 @@ import java.io.FileWriter
 import static java.lang.System.getenv
 
 import static extension alpha.model.ComplexityCalculator.complexity
-import static extension alpha.model.util.AlphaUtil.getContainerRoot
-import alpha.model.transformation.automation.OptimalSimplifyingReductions.State
 
 /**
  * This class is a wrapper around the new demand driven code generator.
@@ -33,10 +33,16 @@ class GenerateNewWriteC {
 	static int targetComplexity = parseInt(getenv('ACC_TARGET_COMPLEXITY'), -1)
 	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
+	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
 		Integer.parseInt(str)
+	}
+	
+	def static parseBaseDataType(String str, BaseDataType defaultValue) {
+		if (str.isNullOrEmpty) return defaultValue
+		BaseDataType.valueOf(str.toUpperCase)
 	}
 	
 	def static void main(String[] args) {
@@ -90,7 +96,7 @@ class GenerateNewWriteC {
 	/** Generates the new (v2) demand driven code compatible with v1 for the given system */
 	def static generateWriteC(AlphaSystem system, String outDir) {
 		new File(outDir).mkdirs
-		val program = SystemConverter.convert(system, true)
+		val program = SystemConverter.convert(system, baseDataType, true)
 		val code = ProgramPrinter.print(program).toString
 		val writer = new FileWriter('''«outDir»/«system.name».c''')
 		writer.write(code)
@@ -100,7 +106,7 @@ class GenerateNewWriteC {
 	/** Generates the old (v1) alphaz ab file for the given system */
 	def static void generateV1Alpha(AlphaSystem system, String outDir) {
 		val abFile = '''«outDir»/«system.name».ab'''
-		AlphaModelSaver.writeToFile(abFile, ShowLegacyAlpha.print(system))		
+		AlphaModelSaver.writeToFile(abFile, ShowLegacyAlpha.print(system, baseDataType.toString.toLowerCase))
 	}
 	
 	def static thenQuitWithError(boolean conditionToQuit, String message) {
