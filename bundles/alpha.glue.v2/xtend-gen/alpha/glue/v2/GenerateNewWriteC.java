@@ -44,6 +44,8 @@ public class GenerateNewWriteC {
 
   private static boolean trySplitting = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_TRY_SPLITTING")));
 
+  private static boolean verbose = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_VERBOSE")));
+
   public static int parseInt(final String str, final int defaultValue) {
     int _xblockexpression = (int) 0;
     {
@@ -117,7 +119,7 @@ public class GenerateNewWriteC {
         int _minus = (_complexity - 1);
         GenerateNewWriteC.targetComplexity = _minus;
       }
-      final OptimalSimplifyingReductions osr = OptimalSimplifyingReductions.apply(system, GenerateNewWriteC.numOptimizations, GenerateNewWriteC.targetComplexity, GenerateNewWriteC.trySplitting);
+      final OptimalSimplifyingReductions osr = OptimalSimplifyingReductions.apply(system, GenerateNewWriteC.numOptimizations, GenerateNewWriteC.targetComplexity, GenerateNewWriteC.trySplitting, GenerateNewWriteC.verbose);
       _xblockexpression = osr.optimizations.get(Integer.valueOf(GenerateNewWriteC.targetComplexity));
     }
     return ((OptimalSimplifyingReductions.State[])Conversions.unwrapArray(_xblockexpression, OptimalSimplifyingReductions.State.class));

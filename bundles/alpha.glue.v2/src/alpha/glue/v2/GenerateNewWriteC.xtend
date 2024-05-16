@@ -32,6 +32,7 @@ class GenerateNewWriteC {
 	static int numOptimizations = parseInt(getenv('ACC_NUM_SIMPLIFICATIONS'), 1)
 	static int targetComplexity = parseInt(getenv('ACC_TARGET_COMPLEXITY'), -1)
 	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
+	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
@@ -80,7 +81,7 @@ class GenerateNewWriteC {
 //		SimplifyingReductions.DEBUG = debug
 		if (targetComplexity == -1)
 			targetComplexity = system.complexity - 1
-		val osr = OptimalSimplifyingReductions.apply(system, numOptimizations, targetComplexity, trySplitting)
+		val osr = OptimalSimplifyingReductions.apply(system, numOptimizations, targetComplexity, trySplitting, verbose)
 		
 		// All optimized roots are guaranteed to have a single system
 		osr.optimizations.get(targetComplexity)

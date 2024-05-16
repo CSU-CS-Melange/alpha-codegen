@@ -36,6 +36,8 @@ function usage {
   echo "         --target-complexity   : Target simplified complexity (default: one less than"
   echo "                                 the input program's complexity)"
   echo "         --try-splitting       : Consider splits during simplification (default: false)"
+  echo "    -v,  --verbose             : Emit debug information during simplification exploration"
+
   echo "arguments:"
   echo "    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,"
   echo "                                 wrapper, and verification files. (required if neither "
@@ -98,6 +100,10 @@ while (( "$#" )); do
       ;;
     --try-splitting)
       try_splitting=1;
+      shift 1
+      ;;
+    -v|--verbose)
+      verbose=1;
       shift 1
       ;;
     --num-simplifications)
@@ -210,7 +216,8 @@ if [[ -n "$gen_new_writeC" ]]; then
          ACC_SIMPLIFY=$simplify \
          ACC_NUM_SIMPLIFICATIONS=$num_simplifications \
          ACC_TARGET_COMPLEXITY=$target_complexity \
-         ACC_TRY_SPLITTING=$try_splitting
+         ACC_TRY_SPLITTING=$try_splitting \
+         ACC_VERBOSE=$verbose
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   statuz="$?"
   if [[ -z "$simplify" ]]; then
