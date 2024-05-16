@@ -1,8 +1,8 @@
 # alpha-codegen
 
-This repo contains scripts that can be used to generate and compile simple demand driven C code from input Alpha programs.
-There are currently two versions of AlphaZ ("alphaz" [v1](https://github.com/CSU-CS-Melange/AlphaZ) and "alpha-language" [v2](https://github.com/CSU-CS-Melange/alpha-language)) included here as submodules.
-This repository contains two bundles, one for each, which wrap and expose the respective codegen entry points.
+This repo contains a utility that can be used to generate and compile simple demand driven C code from input Alpha programs.
+Code generation in AlphaZ is currently split across two versions ("alphaz" [v1](https://github.com/CSU-CS-Melange/AlphaZ) and "alpha-language" [v2](https://github.com/CSU-CS-Melange/alpha-language)) referenced here as submodules.
+This repo contains two bundles, one for each, which wrap and expose the respective code generation entry points.
 
 ## Alpha to C Compiler (acc)
 
@@ -30,6 +30,7 @@ options:
          --target-complexity   : Target simplified complexity (default: one less than
                                  the input program's complexity)
          --try-splitting       : Consider splits during simplification (default: false)
+    -v,  --verbose             : Emit debug information during simplification exploration
 arguments:
     ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,
                                  wrapper, and verification files. (required if neither 
@@ -58,7 +59,7 @@ You may wish to add this to your path with the following command:
 This will install the `acc` utility in your home directory.
 You may optionally wish to add this to your shell's PATH.
 Note, this depends on java and your `JAVA_HOME` environment variable must point to a jdk of at least version 11.
-Alternatively, you can follow the steps in the following sections to build everything from source.
+Alternatively, you can follow the steps below to build everything from source.
 
 
 # Usage
@@ -67,9 +68,9 @@ Take a single-system Alpha program such as the following,
 ```
 // test.alpha
 affine prefix_sum [N] -> {: 10<N}
-	inputs X : [N]
-	outputs	Y : [N]
-	let	Y = reduce(+, (i,j->i), {: 0<=j<=i} : X[j]);
+	inputs  X : [N]
+	outputs Y : [N]
+	let     Y = reduce(+, (i,j->i), {: 0<=j<=i} : X[j]);
 .
 ```
 
@@ -93,7 +94,7 @@ $ acc -o out-1 test.alpha
 [acc]: created 'out-1/Makefile' file
 ```
 
-The `out-1` directory will now look like this,
+A new directory called `out-1` will be created and will look like this,
 ```
 out-1
 ├── Makefile
@@ -140,14 +141,14 @@ Execution time : 0.000005 sec.
 TEST for Y PASSED
 ```
 
-The verification targets use the old WriteC.
+The verification targets use the old WriteC code generator.
 This can be used to bug check the new code generator (assuming the same bug is not also present in the old one).
 If verification reports "TEST ... PASSED", then it confirms that the new code generator produces a program that computes the same answer as the old code generator.
 This can also be used to sanity check that any optimized versions compute the same answer (i.e., remain semantically equivalent).
 
 ## Generate demand driven code with simplification
 
-Take the same input prefix sum program above and run the `acc` script but this time pass the `-s` option and ask to report up to 10 simplifications with the `--num-simplifications 10` option,
+Take the same prefix sum program above and run the `acc` script but this time ask it to try to simplify the program by passing the `-s` option and ask it to report at most two simplifications with the `--num-simplifications 2` option,
 ```
 $ acc -o out-2 -s --num-simplifications 10 test.alpha
 [acc]: reading 'test.alpha' file
