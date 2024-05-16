@@ -6,6 +6,393 @@
     <property name="dir.buildfile" value="."/>
     <property name="dir.jarfile" value="${basedir}/../../artifact/bin"/>
     <target name="create_run_jar">
+        <fail message="org.eclipse.emf.ecore_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.ecore_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.common_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.common_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext.xbase.lib_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext.xbase.lib_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="com.google.guava_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="com.google.guava_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.ecore.xcore.lib_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.ecore.xcore.lib_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.core.runtime_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.core.runtime_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.osgi_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.osgi_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.codehaus.groovy.eclipse.frameworkAdapter_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.codehaus.groovy.eclipse.frameworkAdapter_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.osgi.compatibility.state_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.osgi.compatibility.state_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.equinox.common_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.equinox.common_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.core.jobs_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.core.jobs_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.equinox.registry_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.equinox.registry_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.equinox.preferences_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.equinox.preferences_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.osgi.service.prefs_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.osgi.service.prefs_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.core.contenttype_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.core.contenttype_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.equinox.app_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.equinox.app_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.ecore.xcore_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.ecore.xcore_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.ecore.xmi_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.ecore.xmi_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.antlr.runtime_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.antlr.runtime_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="com.google.inject_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="com.google.inject_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.mwe.core_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.mwe.core_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.apache.commons.cli_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.apache.commons.cli_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.mwe2.runtime_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.mwe2.runtime_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.mwe.utils_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.mwe.utils_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext.util_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext.util_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="javax.inject_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="javax.inject_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.apache.log4j_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.apache.log4j_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext.xbase_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext.xbase_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext.common.types_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext.common.types_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtend.lib_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtend.lib_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtend.lib.macro_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtend.lib.macro_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtext.ecore_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtext.ecore_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.emf.codegen.ecore.xtext_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.emf.codegen.ecore.xtext_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="fr.irisa.cairn.jnimap.isl_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="fr.irisa.cairn.jnimap.isl_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="fr.irisa.cairn.jnimap.runtime_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="fr.irisa.cairn.jnimap.runtime_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="org.eclipse.xtend.typesystem.emf_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="org.eclipse.xtend.typesystem.emf_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="fr.irisa.cairn.jnimap.polylib_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="fr.irisa.cairn.jnimap.polylib_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="fr.irisa.cairn.jnimap.barvinok_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="fr.irisa.cairn.jnimap.barvinok_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="alpha.model.xtext_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="alpha.model.xtext_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="alpha.targetmapping.xtext_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="alpha.targetmapping.xtext_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="alpha.loader_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="alpha.loader_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
+        <fail message="alpha.targetmapping_*.jar is missing">
+            <condition>
+                <not>
+                    <resourcecount count="1" when="ge">
+                        <fileset dir="${ant.home}/../" includes="alpha.targetmapping_*.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
         <jar destfile="${dir.jarfile}/alpha.glue.v2.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
