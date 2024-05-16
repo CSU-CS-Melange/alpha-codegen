@@ -1,5 +1,6 @@
 package alpha.glue.v2;
 
+import alpha.codegen.BaseDataType;
 import alpha.codegen.Program;
 import alpha.codegen.ProgramPrinter;
 import alpha.codegen.writeC.SystemConverter;
@@ -46,6 +47,8 @@ public class GenerateNewWriteC {
 
   private static boolean verbose = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_VERBOSE")));
 
+  private static BaseDataType baseDataType = GenerateNewWriteC.parseBaseDataType(System.getenv("ACC_BASE_DATATYPE"), BaseDataType.FLOAT);
+
   public static int parseInt(final String str, final int defaultValue) {
     int _xblockexpression = (int) 0;
     {
@@ -54,6 +57,18 @@ public class GenerateNewWriteC {
         return defaultValue;
       }
       _xblockexpression = Integer.parseInt(str);
+    }
+    return _xblockexpression;
+  }
+
+  public static BaseDataType parseBaseDataType(final String str, final BaseDataType defaultValue) {
+    BaseDataType _xblockexpression = null;
+    {
+      boolean _isNullOrEmpty = StringExtensions.isNullOrEmpty(str);
+      if (_isNullOrEmpty) {
+        return defaultValue;
+      }
+      _xblockexpression = BaseDataType.valueOf(str.toUpperCase());
     }
     return _xblockexpression;
   }
@@ -131,7 +146,7 @@ public class GenerateNewWriteC {
   public static void generateWriteC(final AlphaSystem system, final String outDir) {
     try {
       new File(outDir).mkdirs();
-      final Program program = SystemConverter.convert(system, true);
+      final Program program = SystemConverter.convert(system, GenerateNewWriteC.baseDataType, true);
       final String code = ProgramPrinter.print(program).toString();
       StringConcatenation _builder = new StringConcatenation();
       _builder.append(outDir);
@@ -158,7 +173,7 @@ public class GenerateNewWriteC {
     _builder.append(_name);
     _builder.append(".ab");
     final String abFile = _builder.toString();
-    AlphaModelSaver.writeToFile(abFile, ShowLegacyAlpha.print(system));
+    AlphaModelSaver.writeToFile(abFile, ShowLegacyAlpha.print(system, GenerateNewWriteC.baseDataType.toString().toLowerCase()));
   }
 
   public static void thenQuitWithError(final boolean conditionToQuit, final String message) {

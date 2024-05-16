@@ -25,6 +25,8 @@ function usage {
   echo "    -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system"
   echo "    -o,  --out-dir             : Directory in which to place the output files, if the"
   echo "                                 path does not exist then it will be created (default: .)"
+  echo "    -d,  --data-type           : Data type to use for program variables, may be 'int',"
+  echo "                                 'long', 'float', or 'double' (default: 'float')"
   echo "    -m,  --make                : Run make to build the generated files. Note, this may"
   echo "                                 fail if both v1 and v2 files have not been generated."
   echo "                                 Cannot be used with -s since multiple versions may be"
@@ -37,7 +39,6 @@ function usage {
   echo "                                 the input program's complexity)"
   echo "         --try-splitting       : Consider splits during simplification (default: false)"
   echo "    -v,  --verbose             : Emit debug information during simplification exploration"
-
   echo "arguments:"
   echo "    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,"
   echo "                                 wrapper, and verification files. (required if neither "
@@ -82,6 +83,7 @@ function assert_dependencies_exist {
 #######################################################################
 
 out_dir='.'
+data_type='float'
 
 params=""
 while (( "$#" )); do
@@ -145,6 +147,20 @@ while (( "$#" )); do
     -o|--out-dir)
       if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
         out_dir=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
+    -d|--data-type)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        data_type=$2
+        if [[ "$data_type" != 'int' && "$data_type" != 'long' && "$data_type" != 'float' && "$data_type" != 'double' ]]; then
+          echo "'$data_type' is not a recognized data type"
+          usage
+          exit 1
+        fi
         shift 2
       else
         echo "argument missing for -- $1" >&2
@@ -217,7 +233,8 @@ if [[ -n "$gen_new_writeC" ]]; then
          ACC_NUM_SIMPLIFICATIONS=$num_simplifications \
          ACC_TARGET_COMPLEXITY=$target_complexity \
          ACC_TRY_SPLITTING=$try_splitting \
-         ACC_VERBOSE=$verbose
+         ACC_VERBOSE=$verbose \
+         ACC_BASE_DATATYPE=$data_type
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   statuz="$?"
   if [[ -z "$simplify" ]]; then
@@ -244,7 +261,8 @@ if [[ -n "$gen_legacy_supportingC" ]]; then
   echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
   export ACC_ALPHA_FILE=$v1_gen_alpha_file \
          ACC_OUT_DIR=$out_dir \
-         ACC_LEGACY_SAVE=1
+         ACC_LEGACY_SAVE=1 \
+         ACC_BASE_DATATYPE=$data_type
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   assert_file_created ${out_dir}/${system_name}.ab
   
