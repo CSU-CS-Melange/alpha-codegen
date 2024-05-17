@@ -119,7 +119,7 @@ cc prefix_sum-wrapper.c -o prefix_sum.verify-rand prefix_sum.o  prefix_sum_verif
 ```
 This will produce several executables,
 ```
-out/
+out-1
 ├── Makefile
 ├── prefix_sum              <-- This is the main binary
 ├── prefix_sum-wrapper.c
