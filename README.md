@@ -187,7 +187,7 @@ out-2
         ├── prefix_sum.alpha
         └── prefix_sum.c
 ```
-We see the two simplifications possible the prefix sum.
+We see the two simplifications possible for the prefix sum.
 The corresponding Alpha and C files are written to the `simplification` subdirectory of the output directory.
 
 Now you can simply move the simplified `*.c` files to the top level directory, run make, and run the verification target,
