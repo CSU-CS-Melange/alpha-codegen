@@ -15,6 +15,9 @@ import java.io.FileWriter
 import static java.lang.System.getenv
 
 import static extension alpha.model.ComplexityCalculator.complexity
+import java.util.List
+import alpha.model.transformation.SubstituteByDef
+import alpha.model.transformation.RemoveUnusedEquations
 
 /**
  * This class is a wrapper around the new demand driven code generator.
@@ -34,6 +37,7 @@ class GenerateNewWriteC {
 	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
+	static List<String> substituteNames = getenv('ACC_SUBSTITUTE').parseList
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
@@ -43,6 +47,11 @@ class GenerateNewWriteC {
 	def static parseBaseDataType(String str, BaseDataType defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
 		BaseDataType.valueOf(str.toUpperCase)
+	}
+	
+	def static List<String> parseList(String str) {
+		if (str.isNullOrEmpty) return #[]
+		str.split(",")
 	}
 	
 	def static void main(String[] args) {
@@ -56,6 +65,16 @@ class GenerateNewWriteC {
 		(root.systems.size > 1).thenQuitWithError('error: only single system alpha programs are supported by this tool')
 		val system = root.systems.get(0)
 		(system.systemBodies.size > 1).thenQuitWithError('error: only systems with a single body are supported by this tool')
+		
+		for (variableName : substituteNames) {
+			// Make sure there is a variable with the desired name.
+			// If there is, use SubstituteByDef to substitute it,
+			// then RemoveUnusedEquations to eliminate it from the system.
+			system.variables.forall[it.name != variableName].thenQuitWithError('Cannot find the variable "' + variableName + '" to substitute.')
+			val variable = system.variables.filter[it.name == variableName].head
+			SubstituteByDef.apply(system, variable)
+			RemoveUnusedEquations.apply(system)
+		}
 		
 		if (runLegacySave) {			
 			// Generate the v1 alpha file from the input program along

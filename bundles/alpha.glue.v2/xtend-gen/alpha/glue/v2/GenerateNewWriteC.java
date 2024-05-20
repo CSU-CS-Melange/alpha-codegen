@@ -9,17 +9,24 @@ import alpha.model.AlphaModelSaver;
 import alpha.model.AlphaRoot;
 import alpha.model.AlphaSystem;
 import alpha.model.ComplexityCalculator;
+import alpha.model.Variable;
+import alpha.model.transformation.RemoveUnusedEquations;
+import alpha.model.transformation.SubstituteByDef;
 import alpha.model.transformation.automation.OptimalSimplifyingReductions;
 import alpha.model.util.ShowLegacyAlpha;
+import com.google.common.base.Objects;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import org.eclipse.xtend2.lib.StringConcatenation;
+import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Functions.Function1;
 import org.eclipse.xtext.xbase.lib.InputOutput;
+import org.eclipse.xtext.xbase.lib.IterableExtensions;
 import org.eclipse.xtext.xbase.lib.ListExtensions;
 import org.eclipse.xtext.xbase.lib.Pair;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
@@ -49,6 +56,8 @@ public class GenerateNewWriteC {
 
   private static BaseDataType baseDataType = GenerateNewWriteC.parseBaseDataType(System.getenv("ACC_BASE_DATATYPE"), BaseDataType.FLOAT);
 
+  private static List<String> substituteNames = GenerateNewWriteC.parseList(System.getenv("ACC_SUBSTITUTE"));
+
   public static int parseInt(final String str, final int defaultValue) {
     int _xblockexpression = (int) 0;
     {
@@ -73,6 +82,18 @@ public class GenerateNewWriteC {
     return _xblockexpression;
   }
 
+  public static List<String> parseList(final String str) {
+    String[] _xblockexpression = null;
+    {
+      boolean _isNullOrEmpty = StringExtensions.isNullOrEmpty(str);
+      if (_isNullOrEmpty) {
+        return Collections.<String>unmodifiableList(CollectionLiterals.<String>newArrayList());
+      }
+      _xblockexpression = str.split(",");
+    }
+    return (List<String>)Conversions.doWrapArray(_xblockexpression);
+  }
+
   public static void main(final String[] args) {
     try {
       GenerateNewWriteC.thenQuitWithError((GenerateNewWriteC.alphaFile == null), "no input alpha file specified via ACC_ALPHA_FILE");
@@ -83,6 +104,22 @@ public class GenerateNewWriteC {
       final AlphaSystem system = root.getSystems().get(0);
       int _size_1 = system.getSystemBodies().size();
       GenerateNewWriteC.thenQuitWithError((_size_1 > 1), "error: only systems with a single body are supported by this tool");
+      for (final String variableName : GenerateNewWriteC.substituteNames) {
+        {
+          final Function1<Variable, Boolean> _function = (Variable it) -> {
+            String _name = it.getName();
+            return Boolean.valueOf((!Objects.equal(_name, variableName)));
+          };
+          GenerateNewWriteC.thenQuitWithError(IterableExtensions.<Variable>forall(system.getVariables(), _function), (("Cannot find the variable \"" + variableName) + "\" to substitute."));
+          final Function1<Variable, Boolean> _function_1 = (Variable it) -> {
+            String _name = it.getName();
+            return Boolean.valueOf(Objects.equal(_name, variableName));
+          };
+          final Variable variable = IterableExtensions.<Variable>head(IterableExtensions.<Variable>filter(system.getVariables(), _function_1));
+          SubstituteByDef.apply(system, variable);
+          RemoveUnusedEquations.apply(system);
+        }
+      }
       if (GenerateNewWriteC.runLegacySave) {
         GenerateNewWriteC.generateV1Alpha(system, GenerateNewWriteC.outDir);
       }
