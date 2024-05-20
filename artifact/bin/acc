@@ -274,6 +274,7 @@ if [[ -n "$gen_legacy_supportingC" ]]; then
          ACC_OUT_DIR=$out_dir \
          ACC_LEGACY_SAVE=1 \
          ACC_BASE_DATATYPE=$data_type
+  export -n ACC_SIMPLIFY
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   assert_file_created ${out_dir}/${system_name}.ab
   
