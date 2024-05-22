@@ -32,6 +32,8 @@ options:
          --target-complexity   : Target simplified complexity (default: one less than
                                  the input program's complexity)
          --try-splitting       : Consider splits during simplification (default: false)
+    -u,  --substitute          : A comma-delimited list of variables which will have all
+                                 occurences substituted by its definition.
     -v,  --verbose             : Emit debug information during simplification exploration
 arguments:
     ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,
