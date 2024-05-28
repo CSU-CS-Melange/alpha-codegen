@@ -17,7 +17,7 @@ BASE_NAME=`basename $0`
 function usage {
   echo "usage:" 
   echo "  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
-  echo "      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
+  echo "      [-s [--target-complexity] [--num-simplifications]]"
   echo "      [ALPHA_FILE]"
   echo "options:"
   echo "    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,"
@@ -37,7 +37,6 @@ function usage {
   echo "                                 exploration terminates, whichever comes first (default: 1)"
   echo "         --target-complexity   : Target simplified complexity (default: one less than"
   echo "                                 the input program's complexity)"
-  echo "         --try-splitting       : Consider splits during simplification (default: false)"
   echo "    -u,  --substitute          : A comma-delimited list of variables which will have all"
   echo "                                 occurences substituted by its definition."
   echo "    -v,  --verbose             : Emit debug information during simplification exploration"
