@@ -11,7 +11,7 @@ The `acc` utility glues together the codegen functionality from both versions an
 $ ./artifact/bin/acc --help
 usage:
   acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]
-      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]
+      [-s [--target-complexity] [--num-simplifications]]
       [ALPHA_FILE]
 options:
     -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,
@@ -31,7 +31,6 @@ options:
                                  exploration terminates, whichever comes first (default: 1)
          --target-complexity   : Target simplified complexity (default: one less than
                                  the input program's complexity)
-         --try-splitting       : Consider splits during simplification (default: false)
     -u,  --substitute          : A comma-delimited list of variables which will have all
                                  occurences substituted by its definition.
     -v,  --verbose             : Emit debug information during simplification exploration
