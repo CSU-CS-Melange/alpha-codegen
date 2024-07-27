@@ -6,18 +6,21 @@ import alpha.codegen.demandDriven.WriteC
 import alpha.loader.AlphaLoader
 import alpha.model.AlphaModelSaver
 import alpha.model.AlphaSystem
+import alpha.model.transformation.RemoveUnusedEquations
+import alpha.model.transformation.SubstituteByDef
 import alpha.model.transformation.automation.OptimalSimplifyingReductions
 import alpha.model.transformation.automation.OptimalSimplifyingReductions.State
 import alpha.model.util.ShowLegacyAlpha
 import java.io.File
 import java.io.FileWriter
+import java.util.List
 
 import static java.lang.System.getenv
 
+import static extension alpha.abft.ABFT.insertChecksumV1
+import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.model.ComplexityCalculator.complexity
-import java.util.List
-import alpha.model.transformation.SubstituteByDef
-import alpha.model.transformation.RemoveUnusedEquations
+import static extension alpha.model.util.AlphaUtil.copyAE
 
 /**
  * This class is a wrapper around the new demand driven code generator.
@@ -36,6 +39,7 @@ class GenerateNewWriteC {
 	static int targetComplexity = parseInt(getenv('ACC_TARGET_COMPLEXITY'), -1)
 	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
+	static int[] abftTileSizes = parseIntList(getenv('ACC_ABFT_TILE_SIZES'))
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
 	static List<String> substituteNames = getenv('ACC_SUBSTITUTE').parseList
 
@@ -52,6 +56,11 @@ class GenerateNewWriteC {
 	def static List<String> parseList(String str) {
 		if (str.isNullOrEmpty) return #[]
 		str.split(",")
+	}
+	
+	def static List<Integer> parseIntList(String str) {
+		if (str.isNullOrEmpty) return #[]
+		str.split(",").map[i | Integer.parseInt(i)]
 	}
 	
 	def static void main(String[] args) {
@@ -76,9 +85,22 @@ class GenerateNewWriteC {
 			RemoveUnusedEquations.apply(system)
 		}
 		
+		
+		
 		if (runLegacySave) {			
 			// Generate the v1 alpha file from the input program along
 			system.generateV1Alpha(outDir)
+		}
+		
+		if (abftTileSizes.size > 0) {
+			val abftOutDir = '''«outDir»/abft'''
+			val systemV1 = root.copyAE.systems.get(0)
+			systemV1.insertChecksumV1(abftTileSizes)
+			systemV1.generateWriteC(abftOutDir)
+			
+			val systemV2 = root.copyAE.systems.get(0)
+			systemV2.insertChecksumV2(abftTileSizes)
+			systemV2.generateWriteC(abftOutDir)
 		}
 		
 		if (runSimplification) {

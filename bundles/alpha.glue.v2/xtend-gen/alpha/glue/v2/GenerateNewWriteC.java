@@ -1,5 +1,6 @@
 package alpha.glue.v2;
 
+import alpha.abft.ABFT;
 import alpha.codegen.BaseDataType;
 import alpha.codegen.Program;
 import alpha.codegen.ProgramPrinter;
@@ -13,6 +14,7 @@ import alpha.model.Variable;
 import alpha.model.transformation.RemoveUnusedEquations;
 import alpha.model.transformation.SubstituteByDef;
 import alpha.model.transformation.automation.OptimalSimplifyingReductions;
+import alpha.model.util.AlphaUtil;
 import alpha.model.util.ShowLegacyAlpha;
 import com.google.common.base.Objects;
 import java.io.File;
@@ -54,6 +56,8 @@ public class GenerateNewWriteC {
 
   private static boolean verbose = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_VERBOSE")));
 
+  private static int[] abftTileSizes = ((int[])Conversions.unwrapArray(GenerateNewWriteC.parseIntList(System.getenv("ACC_ABFT_TILE_SIZES")), int.class));
+
   private static BaseDataType baseDataType = GenerateNewWriteC.parseBaseDataType(System.getenv("ACC_BASE_DATATYPE"), BaseDataType.FLOAT);
 
   private static List<String> substituteNames = GenerateNewWriteC.parseList(System.getenv("ACC_SUBSTITUTE"));
@@ -94,6 +98,21 @@ public class GenerateNewWriteC {
     return (List<String>)Conversions.doWrapArray(_xblockexpression);
   }
 
+  public static List<Integer> parseIntList(final String str) {
+    List<Integer> _xblockexpression = null;
+    {
+      boolean _isNullOrEmpty = StringExtensions.isNullOrEmpty(str);
+      if (_isNullOrEmpty) {
+        return Collections.<Integer>unmodifiableList(CollectionLiterals.<Integer>newArrayList());
+      }
+      final Function1<String, Integer> _function = (String i) -> {
+        return Integer.valueOf(Integer.parseInt(i));
+      };
+      _xblockexpression = ListExtensions.<String, Integer>map(((List<String>)Conversions.doWrapArray(str.split(","))), _function);
+    }
+    return _xblockexpression;
+  }
+
   public static void main(final String[] args) {
     try {
       GenerateNewWriteC.thenQuitWithError((GenerateNewWriteC.alphaFile == null), "no input alpha file specified via ACC_ALPHA_FILE");
@@ -123,6 +142,20 @@ public class GenerateNewWriteC {
       if (GenerateNewWriteC.runLegacySave) {
         GenerateNewWriteC.generateV1Alpha(system, GenerateNewWriteC.outDir);
       }
+      int _size_2 = ((List<Integer>)Conversions.doWrapArray(GenerateNewWriteC.abftTileSizes)).size();
+      boolean _greaterThan = (_size_2 > 0);
+      if (_greaterThan) {
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append(GenerateNewWriteC.outDir);
+        _builder.append("/abft");
+        final String abftOutDir = _builder.toString();
+        final AlphaSystem systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
+        ABFT.insertChecksumV1(systemV1, GenerateNewWriteC.abftTileSizes);
+        GenerateNewWriteC.generateWriteC(systemV1, abftOutDir);
+        final AlphaSystem systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
+        ABFT.insertChecksumV2(systemV2, GenerateNewWriteC.abftTileSizes);
+        GenerateNewWriteC.generateWriteC(systemV2, abftOutDir);
+      }
       if (GenerateNewWriteC.runSimplification) {
         final OptimalSimplifyingReductions.State[] states = GenerateNewWriteC.optimize(system);
         GenerateNewWriteC.thenQuitWithError((states == null), "No simplifications found, exiting");
@@ -133,20 +166,20 @@ public class GenerateNewWriteC {
         final Consumer<Pair<Integer, OptimalSimplifyingReductions.State>> _function_1 = (Pair<Integer, OptimalSimplifyingReductions.State> pair) -> {
           final OptimalSimplifyingReductions.State state = pair.getValue();
           final AlphaSystem stateSystem = state.root().getSystems().get(0);
-          StringConcatenation _builder = new StringConcatenation();
-          _builder.append(GenerateNewWriteC.outDir);
-          _builder.append("/simplifications/v");
-          Integer _key = pair.getKey();
-          _builder.append(_key);
-          final String simplificationOutDir = _builder.toString();
-          GenerateNewWriteC.generateWriteC(stateSystem, simplificationOutDir);
           StringConcatenation _builder_1 = new StringConcatenation();
-          _builder_1.append(simplificationOutDir);
-          _builder_1.append("/");
+          _builder_1.append(GenerateNewWriteC.outDir);
+          _builder_1.append("/simplifications/v");
+          Integer _key = pair.getKey();
+          _builder_1.append(_key);
+          final String simplificationOutDir = _builder_1.toString();
+          GenerateNewWriteC.generateWriteC(stateSystem, simplificationOutDir);
+          StringConcatenation _builder_2 = new StringConcatenation();
+          _builder_2.append(simplificationOutDir);
+          _builder_2.append("/");
           String _name = system.getName();
-          _builder_1.append(_name);
-          _builder_1.append(".alpha");
-          AlphaModelSaver.writeToFile(_builder_1.toString(), state.show().toString());
+          _builder_2.append(_name);
+          _builder_2.append(".alpha");
+          AlphaModelSaver.writeToFile(_builder_2.toString(), state.show().toString());
         };
         ListExtensions.<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>>map(((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)), _function).forEach(_function_1);
       } else {

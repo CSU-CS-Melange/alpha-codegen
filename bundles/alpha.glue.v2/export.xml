@@ -393,10 +393,11 @@
                 </not>
             </condition>
         </fail>
+    	
         <jar destfile="${dir.jarfile}/alpha.glue.v2.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
-                <attribute name="Rsrc-Main-Class" value="alpha.glue.v2.GenerateNewWriteC"/>
+                <attribute name="Rsrc-Main-Class" value="alpha.glue.v2.GenerateABFTBenchmarking"/>
                 <attribute name="Class-Path" value="."/>
             	<attribute name="Rsrc-Class-Path" value="./ org.eclipse.emf.ecore.jar org.eclipse.emf.common.jar org.eclipse.xtext.xbase.lib.jar com.google.guava.jar org.eclipse.emf.ecore.xcore.lib.jar org.eclipse.core.runtime.jar org.eclipse.osgi.jar org.codehaus.groovy.eclipse.frameworkAdapter.jar org.eclipse.osgi.compatibility.state.jar org.eclipse.equinox.common.jar org.eclipse.core.jobs.jar org.eclipse.equinox.registry.jar org.eclipse.equinox.preferences.jar org.osgi.service.prefs.jar org.eclipse.core.contenttype.jar org.eclipse.equinox.app.jar org.eclipse.emf.ecore.xcore.jar org.eclipse.xtext.jar org.eclipse.emf.ecore.xmi.jar org.antlr.runtime.jar com.google.inject.jar org.eclipse.emf.mwe.core.jar org.apache.commons.cli.jar org.eclipse.emf.mwe2.runtime.jar org.eclipse.emf.mwe.utils.jar org.eclipse.xtext.util.jar javax.inject.jar org.apache.log4j.jar org.eclipse.xtext.xbase.jar org.eclipse.xtext.common.types.jar org.eclipse.xtend.lib.jar org.eclipse.xtend.lib.macro.jar org.eclipse.xtext.ecore.jar org.eclipse.emf.codegen.ecore.xtext.jar fr.irisa.cairn.jnimap.isl.jar fr.irisa.cairn.jnimap.runtime.jar org.eclipse.xtend.typesystem.emf.jar fr.irisa.cairn.jnimap.polylib.jar fr.irisa.cairn.jnimap.barvinok.jar alpha.model.xtext.jar alpha.targetmapping.xtext.jar alpha.loader.jar alpha.targetmapping.jar"/>
             </manifest>
@@ -404,6 +405,7 @@
             <fileset dir="${dir.buildfile}/bin"/>
             <fileset dir="${basedir}../../../alpha-language/bundles/alpha.codegen/bin"/>
             <fileset dir="${basedir}../../../alpha-language/bundles/alpha.model/bin"/>
+        	<fileset dir="${basedir}../../../alpha-language/bundles/alpha.abft/bin"/>
             <mappedresources>
                 <zipfileset dir="${ant.home}/../">
                 	<include name="org.eclipse.emf.ecore_*.jar"/>
