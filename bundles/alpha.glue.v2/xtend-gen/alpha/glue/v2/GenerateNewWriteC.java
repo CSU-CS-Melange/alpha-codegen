@@ -3,7 +3,7 @@ package alpha.glue.v2;
 import alpha.codegen.BaseDataType;
 import alpha.codegen.Program;
 import alpha.codegen.ProgramPrinter;
-import alpha.codegen.writeC.SystemConverter;
+import alpha.codegen.demandDriven.WriteC;
 import alpha.loader.AlphaLoader;
 import alpha.model.AlphaModelSaver;
 import alpha.model.AlphaRoot;
@@ -183,7 +183,7 @@ public class GenerateNewWriteC {
   public static void generateWriteC(final AlphaSystem system, final String outDir) {
     try {
       new File(outDir).mkdirs();
-      final Program program = SystemConverter.convert(system, GenerateNewWriteC.baseDataType, true);
+      final Program program = WriteC.convert(system, GenerateNewWriteC.baseDataType, true);
       final String code = ProgramPrinter.print(program).toString();
       StringConcatenation _builder = new StringConcatenation();
       _builder.append(outDir);

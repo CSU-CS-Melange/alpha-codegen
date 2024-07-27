@@ -2,7 +2,7 @@ package alpha.glue.v2
 
 import alpha.codegen.BaseDataType
 import alpha.codegen.ProgramPrinter
-import alpha.codegen.writeC.SystemConverter
+import alpha.codegen.demandDriven.WriteC
 import alpha.loader.AlphaLoader
 import alpha.model.AlphaModelSaver
 import alpha.model.AlphaSystem
@@ -115,7 +115,7 @@ class GenerateNewWriteC {
 	/** Generates the new (v2) demand driven code compatible with v1 for the given system */
 	def static generateWriteC(AlphaSystem system, String outDir) {
 		new File(outDir).mkdirs
-		val program = SystemConverter.convert(system, baseDataType, true)
+		val program = WriteC.convert(system, baseDataType, true)
 		val code = ProgramPrinter.print(program).toString
 		val writer = new FileWriter('''«outDir»/«system.name».c''')
 		writer.write(code)
