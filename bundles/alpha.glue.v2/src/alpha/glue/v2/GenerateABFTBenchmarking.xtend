@@ -2,15 +2,29 @@ package alpha.glue.v2
 
 import alpha.codegen.BaseDataType
 import alpha.loader.AlphaLoader
+import alpha.model.AlphaModelSaver
+import alpha.model.AlphaSystem
 import alpha.model.AlphaVisitable
+import alpha.model.transformation.Normalize
+import alpha.model.transformation.reduction.NormalizeReduction
 import alpha.model.util.AShow
 import java.util.List
 
+import static alpha.abft.codegen.BenchmarkInstance.*
 import static java.lang.System.getenv
 
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
+import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.v1MemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.v2Schedule
+import static extension alpha.abft.codegen.Makefile.generateMakefile
+import static extension alpha.abft.codegen.Timer.generateTimer
+import static extension alpha.abft.codegen.SystemCodeGen.generateSystemCode
+import static extension alpha.abft.codegen.WrapperCodeGen.generateWrapper
 import static extension alpha.model.util.AlphaUtil.copyAE
+import static extension alpha.model.util.AlphaUtil.getContainerRoot
 import static extension java.lang.Integer.parseInt
 
 class GenerateABFTBenchmarking {
@@ -20,12 +34,13 @@ class GenerateABFTBenchmarking {
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
 	
 	def static void main(String[] args) {
+		
 		// check (env variable) arguments
 		(args.size < 3).thenQuitWithError('GenerateABFTBenchmarking received an invalid number of arguments')
 		(outDir === null).thenQuitWithError('no output directory specified via ACC_OUT_DIR')
 		
 		val alphaFile = args.get(0)
-		val tileSizes = (1..<args.size).map[i | args.get(i).parseInt]
+		val tileSizes = (1..<args.size).map[i | args.get(i).parseInt].toList
 				
 		// Read input alpha program
 		val root = AlphaLoader.loadAlpha(alphaFile)
@@ -33,23 +48,39 @@ class GenerateABFTBenchmarking {
 		val system = root.systems.get(0)
 		(system.systemBodies.size > 1).thenQuitWithError('error: only systems with a single body are supported by this tool')
 		
-		// Create copies for each of the ABFT version schemes
+		/* Code generation */
+		val srcOutDir = outDir + '/src'
+		system.generateSystemCode(baselineSchedule, system.baselineMemoryMap).save(srcOutDir, system.name + '.c')
+		
+		val TT = tileSizes.get(0)
+		
 		val systemV1 = root.copyAE.systems.get(0)
 		val systemV2 = root.copyAE.systems.get(0)
 		
-		system.pprint('// Input program')
+		systemV1.insertChecksumV1(tileSizes).normalize
+		systemV2.insertChecksumV2(tileSizes).normalize
+		systemV1.generateSystemCode(v1Schedule(TT), systemV1.v1MemoryMap).save(srcOutDir, systemV1.name + '.c')
+		systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap).save(srcOutDir, systemV2.name + '.c')
 		
-		systemV1.insertChecksumV1(tileSizes)
-		systemV2.insertChecksumV2(tileSizes)
-		
-		/*
-		 * 
-		 * TODO - do code generation here
-		 * 
-		 */
-		
-		systemV1.pprint('// ABFTv1')
-		systemV2.pprint('// ABFTv2')
+		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap).save(srcOutDir, system.name + '-wrapper.c')
+		system.generateMakefile(#[tileSizes]).save(outDir, 'Makefile')
+		generateTimer.save(srcOutDir, 'time.c')
+	}
+	
+	def static body(AlphaSystem system) {
+		system.systemBodies.get(0)
+	}
+	
+	def static normalize(AlphaSystem system) {
+		Normalize.apply(system)
+		NormalizeReduction.apply(system)
+		system
+	}
+	
+	def static ASave(AlphaSystem system, String dir) {
+		val fileName = dir + '/' + system.name + '.alpha'
+		AlphaModelSaver.writeToFile(fileName, AShow.print(system))
+		system
 	}
 	
 	def static pprint(AlphaVisitable av, String msg) {
@@ -80,4 +111,10 @@ class GenerateABFTBenchmarking {
 			System.exit(1)
 		}
 	}
+	
+	def static save(CharSequence code, String dir, String fileName) {
+		val fullFileName = dir + '/' + fileName
+		AlphaModelSaver.writeToFile(fullFileName, code.toString)
+	}
+	
 }

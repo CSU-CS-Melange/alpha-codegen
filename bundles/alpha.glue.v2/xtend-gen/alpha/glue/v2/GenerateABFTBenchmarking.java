@@ -1,11 +1,20 @@
 package alpha.glue.v2;
 
 import alpha.abft.ABFT;
+import alpha.abft.codegen.BenchmarkInstance;
+import alpha.abft.codegen.Makefile;
+import alpha.abft.codegen.SystemCodeGen;
+import alpha.abft.codegen.Timer;
+import alpha.abft.codegen.WrapperCodeGen;
 import alpha.codegen.BaseDataType;
 import alpha.loader.AlphaLoader;
+import alpha.model.AlphaModelSaver;
 import alpha.model.AlphaRoot;
 import alpha.model.AlphaSystem;
 import alpha.model.AlphaVisitable;
+import alpha.model.SystemBody;
+import alpha.model.transformation.Normalize;
+import alpha.model.transformation.reduction.NormalizeReduction;
 import alpha.model.util.AShow;
 import alpha.model.util.AlphaUtil;
 import java.util.Collections;
@@ -38,23 +47,66 @@ public class GenerateABFTBenchmarking {
       final Function1<Integer, Integer> _function = (Integer i) -> {
         return Integer.valueOf(Integer.parseInt(args[(i).intValue()]));
       };
-      final Iterable<Integer> tileSizes = IterableExtensions.<Integer, Integer>map(new ExclusiveRange(1, _size_1, true), _function);
+      final List<Integer> tileSizes = IterableExtensions.<Integer>toList(IterableExtensions.<Integer, Integer>map(new ExclusiveRange(1, _size_1, true), _function));
       final AlphaRoot root = AlphaLoader.loadAlpha(alphaFile);
       int _size_2 = root.getSystems().size();
       GenerateABFTBenchmarking.thenQuitWithError((_size_2 > 1), "error: only single system alpha programs are supported by this tool");
       final AlphaSystem system = root.getSystems().get(0);
       int _size_3 = system.getSystemBodies().size();
       GenerateABFTBenchmarking.thenQuitWithError((_size_3 > 1), "error: only systems with a single body are supported by this tool");
+      final String srcOutDir = (GenerateABFTBenchmarking.outDir + "/src");
+      String _generateSystemCode = SystemCodeGen.generateSystemCode(system, BenchmarkInstance.baselineSchedule(), BenchmarkInstance.baselineMemoryMap(system));
+      String _name = system.getName();
+      String _plus = (_name + ".c");
+      GenerateABFTBenchmarking.save(_generateSystemCode, srcOutDir, _plus);
+      final Integer TT = tileSizes.get(0);
       final AlphaSystem systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
       final AlphaSystem systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-      GenerateABFTBenchmarking.pprint(system, "// Input program");
-      ABFT.insertChecksumV1(systemV1, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
-      ABFT.insertChecksumV2(systemV2, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
-      GenerateABFTBenchmarking.pprint(systemV1, "// ABFTv1");
-      GenerateABFTBenchmarking.pprint(systemV2, "// ABFTv2");
+      GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV1(systemV1, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
+      GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV2(systemV2, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
+      String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV1, BenchmarkInstance.v1Schedule((TT).intValue()), BenchmarkInstance.v1MemoryMap(systemV1));
+      String _name_1 = systemV1.getName();
+      String _plus_1 = (_name_1 + ".c");
+      GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_1);
+      String _generateSystemCode_2 = SystemCodeGen.generateSystemCode(systemV2, BenchmarkInstance.v2Schedule(systemV2, (TT).intValue()), BenchmarkInstance.v2MemoryMap(systemV2));
+      String _name_2 = systemV2.getName();
+      String _plus_2 = (_name_2 + ".c");
+      GenerateABFTBenchmarking.save(_generateSystemCode_2, srcOutDir, _plus_2);
+      String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, BenchmarkInstance.baselineMemoryMap(system));
+      String _name_3 = system.getName();
+      String _plus_3 = (_name_3 + "-wrapper.c");
+      GenerateABFTBenchmarking.save(_generateWrapper, srcOutDir, _plus_3);
+      GenerateABFTBenchmarking.save(Makefile.generateMakefile(system, Collections.<List<Integer>>unmodifiableList(CollectionLiterals.<List<Integer>>newArrayList(tileSizes))), GenerateABFTBenchmarking.outDir, "Makefile");
+      GenerateABFTBenchmarking.save(Timer.generateTimer(), srcOutDir, "time.c");
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
     }
+  }
+
+  public static SystemBody body(final AlphaSystem system) {
+    return system.getSystemBodies().get(0);
+  }
+
+  public static AlphaSystem normalize(final AlphaSystem system) {
+    AlphaSystem _xblockexpression = null;
+    {
+      Normalize.apply(system);
+      NormalizeReduction.apply(system);
+      _xblockexpression = system;
+    }
+    return _xblockexpression;
+  }
+
+  public static AlphaSystem ASave(final AlphaSystem system, final String dir) {
+    AlphaSystem _xblockexpression = null;
+    {
+      String _name = system.getName();
+      String _plus = ((dir + "/") + _name);
+      final String fileName = (_plus + ".alpha");
+      AlphaModelSaver.writeToFile(fileName, AShow.print(system));
+      _xblockexpression = system;
+    }
+    return _xblockexpression;
   }
 
   public static String pprint(final AlphaVisitable av, final String msg) {
@@ -114,5 +166,10 @@ public class GenerateABFTBenchmarking {
       InputOutput.<String>println(("[alpha.glue.v2.GenerateNewWriteC]: " + message));
       System.exit(1);
     }
+  }
+
+  public static void save(final CharSequence code, final String dir, final String fileName) {
+    final String fullFileName = ((dir + "/") + fileName);
+    AlphaModelSaver.writeToFile(fullFileName, code.toString());
   }
 }
