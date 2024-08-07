@@ -27,6 +27,8 @@ import static extension alpha.model.util.AlphaUtil.copyAE
 import static extension alpha.model.util.AlphaUtil.getContainerRoot
 import static extension java.lang.Integer.parseInt
 
+import alpha.abft.codegen.Version
+
 class GenerateABFTBenchmarking {
 	
 	static String outDir = getenv('ACC_OUT_DIR')
@@ -50,7 +52,6 @@ class GenerateABFTBenchmarking {
 		
 		/* Code generation */
 		val srcOutDir = outDir + '/src'
-		system.generateSystemCode(baselineSchedule, system.baselineMemoryMap).save(srcOutDir, system.name + '.c')
 		
 		val TT = tileSizes.get(0)
 		
@@ -59,11 +60,12 @@ class GenerateABFTBenchmarking {
 		
 		systemV1.insertChecksumV1(tileSizes).normalize
 		systemV2.insertChecksumV2(tileSizes).normalize
-		systemV1.generateSystemCode(v1Schedule(TT), systemV1.v1MemoryMap).save(srcOutDir, systemV1.name + '.c')
-		systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap).save(srcOutDir, systemV2.name + '.c')
 		
-		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap).save(srcOutDir, system.name + '-wrapper.c')
-		system.generateMakefile(#[tileSizes]).save(outDir, 'Makefile')
+		system.generateSystemCode(baselineSchedule, system.baselineMemoryMap, Version.BASELINE, tileSizes).save(srcOutDir, system.name + '.c')
+		systemV1.generateSystemCode(v1Schedule(TT), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
+		systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, tileSizes).save(srcOutDir, systemV2.name + '.c')
+		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, tileSizes).save(srcOutDir, system.name + '-wrapper.c')
+		system.generateMakefile(systemV1, systemV2, tileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
 	}
 	
