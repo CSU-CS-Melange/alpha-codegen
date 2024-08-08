@@ -13,6 +13,7 @@ import java.util.List
 import static alpha.abft.codegen.BenchmarkInstance.*
 import static java.lang.System.getenv
 
+import static extension alpha.codegen.ProgramPrinter.print
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
@@ -28,6 +29,7 @@ import static extension alpha.model.util.AlphaUtil.getContainerRoot
 import static extension java.lang.Integer.parseInt
 
 import alpha.abft.codegen.Version
+import alpha.codegen.demandDriven.WriteC
 
 class GenerateABFTBenchmarking {
 	
