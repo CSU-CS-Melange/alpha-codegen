@@ -18,6 +18,7 @@ import alpha.model.transformation.Normalize;
 import alpha.model.transformation.reduction.NormalizeReduction;
 import alpha.model.util.AShow;
 import alpha.model.util.AlphaUtil;
+import com.google.common.base.Objects;
 import java.util.Collections;
 import java.util.List;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
@@ -38,6 +39,8 @@ public class GenerateABFTBenchmarking {
 
   private static BaseDataType baseDataType = GenerateABFTBenchmarking.parseBaseDataType(System.getenv("ACC_BASE_DATATYPE"), BaseDataType.FLOAT);
 
+  private static Version version = GenerateABFTBenchmarking.parseVersion(System.getenv("ACC_ABFT_VERSION"), null);
+
   public static void main(final String[] args) {
     try {
       int _size = ((List<String>)Conversions.doWrapArray(args)).size();
@@ -57,20 +60,26 @@ public class GenerateABFTBenchmarking {
       GenerateABFTBenchmarking.thenQuitWithError((_size_3 > 1), "error: only systems with a single body are supported by this tool");
       final String srcOutDir = (GenerateABFTBenchmarking.outDir + "/src");
       final Integer TT = tileSizes.get(0);
-      final AlphaSystem systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-      final AlphaSystem systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-      GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV1(systemV1, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
-      GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV2(systemV2, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
-      String _generateSystemCode = SystemCodeGen.generateSystemCode(system, BenchmarkInstance.baselineSchedule(), BenchmarkInstance.baselineMemoryMap(system), Version.BASELINE, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
-      String _name = system.getName();
-      String _plus = (_name + ".c");
-      GenerateABFTBenchmarking.save(_generateSystemCode, srcOutDir, _plus);
-      String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV1, BenchmarkInstance.v1Schedule((TT).intValue()), BenchmarkInstance.v1MemoryMap(systemV1), Version.ABFT_V1, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
-      String _name_1 = systemV1.getName();
-      String _plus_1 = (_name_1 + ".c");
-      GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_1);
-      String _generateSystemCode_2 = SystemCodeGen.generateSystemCode(systemV2, BenchmarkInstance.v2Schedule(systemV2, (TT).intValue()), BenchmarkInstance.v2MemoryMap(systemV2), Version.ABFT_V2, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
-      String _name_2 = systemV2.getName();
+      AlphaSystem systemV1 = ((AlphaSystem) null);
+      AlphaSystem systemV2 = ((AlphaSystem) null);
+      if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V1))) {
+        systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
+        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV1(systemV1, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
+        String _generateSystemCode = SystemCodeGen.generateSystemCode(systemV1, BenchmarkInstance.v1Schedule(((int[])Conversions.unwrapArray(tileSizes, int.class))), BenchmarkInstance.v1MemoryMap(systemV1), Version.ABFT_V1, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
+        String _name = systemV1.getName();
+        String _plus = (_name + ".c");
+        GenerateABFTBenchmarking.save(_generateSystemCode, srcOutDir, _plus);
+      }
+      if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V2))) {
+        systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
+        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV2(systemV2, ((int[])Conversions.unwrapArray(tileSizes, int.class))));
+        String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV2, BenchmarkInstance.v2Schedule(systemV2, (TT).intValue()), BenchmarkInstance.v2MemoryMap(systemV2), Version.ABFT_V2, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
+        String _name_1 = systemV2.getName();
+        String _plus_1 = (_name_1 + ".c");
+        GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_1);
+      }
+      String _generateSystemCode_2 = SystemCodeGen.generateSystemCode(system, BenchmarkInstance.baselineSchedule(), BenchmarkInstance.baselineMemoryMap(system), Version.BASELINE, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
+      String _name_2 = system.getName();
       String _plus_2 = (_name_2 + ".c");
       GenerateABFTBenchmarking.save(_generateSystemCode_2, srcOutDir, _plus_2);
       String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, BenchmarkInstance.baselineMemoryMap(system), Version.WRAPPER, ((int[])Conversions.unwrapArray(tileSizes, int.class)));
@@ -131,6 +140,35 @@ public class GenerateABFTBenchmarking {
         return defaultValue;
       }
       _xblockexpression = Integer.parseInt(str);
+    }
+    return _xblockexpression;
+  }
+
+  public static Version parseVersion(final String str, final Version defaultValue) {
+    Version _xblockexpression = null;
+    {
+      boolean _isNullOrEmpty = StringExtensions.isNullOrEmpty(str);
+      if (_isNullOrEmpty) {
+        return defaultValue;
+      }
+      Version _switchResult = null;
+      String _upperCase = str.toUpperCase();
+      if (_upperCase != null) {
+        switch (_upperCase) {
+          case "V1":
+            _switchResult = Version.ABFT_V1;
+            break;
+          case "V2":
+            _switchResult = Version.ABFT_V2;
+            break;
+          default:
+            _switchResult = defaultValue;
+            break;
+        }
+      } else {
+        _switchResult = defaultValue;
+      }
+      _xblockexpression = _switchResult;
     }
     return _xblockexpression;
   }

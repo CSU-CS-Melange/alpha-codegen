@@ -1,5 +1,6 @@
 package alpha.glue.v2
 
+import alpha.abft.codegen.Version
 import alpha.codegen.BaseDataType
 import alpha.loader.AlphaLoader
 import alpha.model.AlphaModelSaver
@@ -11,9 +12,9 @@ import alpha.model.util.AShow
 import java.util.List
 
 import static alpha.abft.codegen.BenchmarkInstance.*
+import static alpha.abft.codegen.Timer.*
 import static java.lang.System.getenv
 
-import static extension alpha.codegen.ProgramPrinter.print
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
@@ -21,21 +22,17 @@ import static extension alpha.abft.codegen.BenchmarkInstance.v1MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v2Schedule
 import static extension alpha.abft.codegen.Makefile.generateMakefile
-import static extension alpha.abft.codegen.Timer.generateTimer
 import static extension alpha.abft.codegen.SystemCodeGen.generateSystemCode
 import static extension alpha.abft.codegen.WrapperCodeGen.generateWrapper
 import static extension alpha.model.util.AlphaUtil.copyAE
-import static extension alpha.model.util.AlphaUtil.getContainerRoot
 import static extension java.lang.Integer.parseInt
-
-import alpha.abft.codegen.Version
-import alpha.codegen.demandDriven.WriteC
 
 class GenerateABFTBenchmarking {
 	
 	static String outDir = getenv('ACC_OUT_DIR')
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
+	static Version version = parseVersion(getenv('ACC_ABFT_VERSION'), null)
 	
 	def static void main(String[] args) {
 		
@@ -57,15 +54,20 @@ class GenerateABFTBenchmarking {
 		
 		val TT = tileSizes.get(0)
 		
-		val systemV1 = root.copyAE.systems.get(0)
-		val systemV2 = root.copyAE.systems.get(0)
-		
-		systemV1.insertChecksumV1(tileSizes).normalize
-		systemV2.insertChecksumV2(tileSizes).normalize
+		var systemV1 = null as AlphaSystem
+		var systemV2 = null as AlphaSystem
+		if (version === null || version == Version.ABFT_V1) {
+			systemV1 = root.copyAE.systems.get(0)
+			systemV1.insertChecksumV1(tileSizes).normalize
+			systemV1.generateSystemCode(v1Schedule(tileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
+		}
+		if (version === null || version == Version.ABFT_V2) {
+			systemV2 = root.copyAE.systems.get(0)
+			systemV2.insertChecksumV2(tileSizes).normalize
+			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, tileSizes).save(srcOutDir, systemV2.name + '.c')
+		}
 		
 		system.generateSystemCode(baselineSchedule, system.baselineMemoryMap, Version.BASELINE, tileSizes).save(srcOutDir, system.name + '.c')
-		systemV1.generateSystemCode(v1Schedule(TT), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
-		systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, tileSizes).save(srcOutDir, systemV2.name + '.c')
 		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, tileSizes).save(srcOutDir, system.name + '-wrapper.c')
 		system.generateMakefile(systemV1, systemV2, tileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
@@ -97,6 +99,15 @@ class GenerateABFTBenchmarking {
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
 		Integer.parseInt(str)
+	}
+	
+	def static parseVersion(String str, Version defaultValue) {
+		if (str.isNullOrEmpty) return defaultValue
+		switch (str.toUpperCase) {
+			case 'V1' : Version.ABFT_V1
+			case 'V2' : Version.ABFT_V2
+			default : defaultValue	
+		}
 	}
 	
 	def static parseBaseDataType(String str, BaseDataType defaultValue) {
