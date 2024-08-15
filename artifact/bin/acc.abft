@@ -14,12 +14,13 @@ BASE_NAME=`basename $0`
 
 function usage {
   echo "usage:" 
-  echo "  acc [-o out_dir] [-d data_type] [-v] ALPHA_FILE TS1 TS2[ TS3[ TS4]]"
+  echo "  acc [-o out_dir] [-d data_type] [-v] [-m] ALPHA_FILE TS1 TS2[ TS3[ TS4]]"
   echo "options:"
   echo "    -o,  --out-dir   : Directory in which to place the output files, if the"
   echo "                       path does not exist then it will be created (default: .)"
   echo "    -d,  --data-type : Data type to use for program variables, may be 'int',"
   echo "                       'long', 'float', or 'double' (default: 'float')"
+  echo "    -m,  --make      : Compile the generated code with default make command"
   echo "    -v,  --verbose   : Emit debug information during simplification exploration"
   echo 
   echo "arguments:"
@@ -79,6 +80,10 @@ while (( "$#" )); do
       ;;
     -v|--verbose)
       verbose=1;
+      shift 1
+      ;;
+    -m|--make)
+      MAKE=1;
       shift 1
       ;;
     -o|--out-dir)
@@ -148,3 +153,23 @@ export ACC_OUT_DIR=$out_dir \
 
 java -jar ${BASE_DIR}/alpha.glue.v2.jar $@
 statuz="$?"
+
+system_name=`cat $1 | grep affine | cut -d' ' -f2`
+
+
+shift 1
+HLx_str=`echo $@ | sed 's~ ~_~g'`
+assert_file_created "$out_dir/src/${system_name}.c"
+assert_file_created "$out_dir/src/${system_name}-wrapper.c"
+if [[ -z "$ACC_ABFT_VERSION" || "$ACC_ABFT_VERSION" == "v1" ]]; then
+  assert_file_created "$out_dir/src/${system_name}_abft_v1_${HLx_str}.c"
+fi
+if [[ -z "$ACC_ABFT_VERSION" || "$ACC_ABFT_VERSION" == "v2" ]]; then
+  assert_file_created "$out_dir/src/${system_name}_abft_v2_${HLx_str}.c"
+fi
+assert_file_created "$out_dir/src/time.c"
+assert_file_created "$out_dir/Makefile"
+
+if [[ -n "$MAKE" ]]; then
+  make -C $out_dir
+fi

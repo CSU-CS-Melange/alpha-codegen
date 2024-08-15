@@ -18,8 +18,10 @@ import static java.lang.System.getenv
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.baselineSchedule
 import static extension alpha.abft.codegen.BenchmarkInstance.v1MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.v1Schedule
 import static extension alpha.abft.codegen.BenchmarkInstance.v2Schedule
 import static extension alpha.abft.codegen.Makefile.generateMakefile
 import static extension alpha.abft.codegen.SystemCodeGen.generateSystemCode
@@ -54,20 +56,19 @@ class GenerateABFTBenchmarking {
 		
 		val TT = tileSizes.get(0)
 		
+		system.generateSystemCode(system.baselineSchedule(), system.baselineMemoryMap, Version.BASELINE, tileSizes).save(srcOutDir, system.name + '.c')
 		var systemV1 = null as AlphaSystem
 		var systemV2 = null as AlphaSystem
 		if (version === null || version == Version.ABFT_V1) {
 			systemV1 = root.copyAE.systems.get(0)
 			systemV1.insertChecksumV1(tileSizes).normalize
-			systemV1.generateSystemCode(v1Schedule(tileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
+			systemV1.generateSystemCode(systemV1.v1Schedule(tileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
 		}
 		if (version === null || version == Version.ABFT_V2) {
 			systemV2 = root.copyAE.systems.get(0)
 			systemV2.insertChecksumV2(tileSizes).normalize
 			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, tileSizes).save(srcOutDir, systemV2.name + '.c')
 		}
-		
-		system.generateSystemCode(baselineSchedule, system.baselineMemoryMap, Version.BASELINE, tileSizes).save(srcOutDir, system.name + '.c')
 		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, tileSizes).save(srcOutDir, system.name + '-wrapper.c')
 		system.generateMakefile(systemV1, systemV2, tileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
