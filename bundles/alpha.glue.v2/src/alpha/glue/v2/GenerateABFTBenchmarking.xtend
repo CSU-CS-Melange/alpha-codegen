@@ -11,17 +11,17 @@ import alpha.model.transformation.reduction.NormalizeReduction
 import alpha.model.util.AShow
 import java.util.List
 
-import static alpha.abft.codegen.BenchmarkInstance.*
 import static alpha.abft.codegen.Timer.*
 import static java.lang.System.getenv
 
+import static extension alpha.abft.ABFT.identify_convolution
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineSchedule
 import static extension alpha.abft.codegen.BenchmarkInstance.v1MemoryMap
-import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v1Schedule
+import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v2Schedule
 import static extension alpha.abft.codegen.Makefile.generateMakefile
 import static extension alpha.abft.codegen.SystemCodeGen.generateSystemCode
@@ -43,34 +43,43 @@ class GenerateABFTBenchmarking {
 		(outDir === null).thenQuitWithError('no output directory specified via ACC_OUT_DIR')
 		
 		val alphaFile = args.get(0)
-		val tileSizes = (1..<args.size).map[i | args.get(i).parseInt].toList
-				
+		val _tileSizes = (1..<args.size).map[i | args.get(i).parseInt].toList
+		
 		// Read input alpha program
 		val root = AlphaLoader.loadAlpha(alphaFile)
 		(root.systems.size > 1).thenQuitWithError('error: only single system alpha programs are supported by this tool')
 		val system = root.systems.get(0)
 		(system.systemBodies.size > 1).thenQuitWithError('error: only systems with a single body are supported by this tool')
 		
+		/* Set tilesizes for v1 and v2 */
+		val TT = _tileSizes.get(0)
+		val v1TileSizes = _tileSizes
+		val kernel = system.identify_convolution
+		val radius = kernel.key
+		val v2TXs = (1..<_tileSizes.size).map[i |
+				_tileSizes.get(i) + 2 * TT * radius
+		]
+		val v2TileSizes = #[TT] + v2TXs
+		
 		/* Code generation */
 		val srcOutDir = outDir + '/src'
 		
-		val TT = tileSizes.get(0)
 		
-		system.generateSystemCode(system.baselineSchedule(), system.baselineMemoryMap, Version.BASELINE, tileSizes).save(srcOutDir, system.name + '.c')
+		system.generateSystemCode(system.baselineSchedule(), system.baselineMemoryMap, Version.BASELINE, v1TileSizes).save(srcOutDir, system.name + '.c')
 		var systemV1 = null as AlphaSystem
 		var systemV2 = null as AlphaSystem
 		if (version === null || version == Version.ABFT_V1) {
 			systemV1 = root.copyAE.systems.get(0)
-			systemV1.insertChecksumV1(tileSizes).normalize
-			systemV1.generateSystemCode(systemV1.v1Schedule(tileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, tileSizes).save(srcOutDir, systemV1.name + '.c')
+			systemV1.insertChecksumV1(v1TileSizes).normalize
+			systemV1.generateSystemCode(systemV1.v1Schedule(v1TileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, v1TileSizes).save(srcOutDir, systemV1.name + '.c')
 		}
 		if (version === null || version == Version.ABFT_V2) {
 			systemV2 = root.copyAE.systems.get(0)
-			systemV2.insertChecksumV2(tileSizes).normalize
-			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, tileSizes).save(srcOutDir, systemV2.name + '.c')
+			systemV2.insertChecksumV2(v2TileSizes).normalize
+			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, v2TileSizes).save(srcOutDir, systemV2.name + '.c')
 		}
-		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, tileSizes).save(srcOutDir, system.name + '-wrapper.c')
-		system.generateMakefile(systemV1, systemV2, tileSizes).save(outDir, 'Makefile')
+		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
+		system.generateMakefile(systemV1, systemV2, v1TileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
 	}
 	
