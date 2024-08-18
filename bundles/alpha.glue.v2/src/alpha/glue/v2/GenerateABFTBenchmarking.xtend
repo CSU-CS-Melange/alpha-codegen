@@ -17,12 +17,15 @@ import static java.lang.System.getenv
 import static extension alpha.abft.ABFT.identify_convolution
 import static extension alpha.abft.ABFT.insertChecksumV1
 import static extension alpha.abft.ABFT.insertChecksumV2
+import static extension alpha.abft.ABFT.insertChecksumV3
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineMemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.baselineSchedule
 import static extension alpha.abft.codegen.BenchmarkInstance.v1MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v1Schedule
 import static extension alpha.abft.codegen.BenchmarkInstance.v2MemoryMap
 import static extension alpha.abft.codegen.BenchmarkInstance.v2Schedule
+import static extension alpha.abft.codegen.BenchmarkInstance.v3MemoryMap
+import static extension alpha.abft.codegen.BenchmarkInstance.v3Schedule
 import static extension alpha.abft.codegen.Makefile.generateMakefile
 import static extension alpha.abft.codegen.SystemCodeGen.generateSystemCode
 import static extension alpha.abft.codegen.WrapperCodeGen.generateWrapper
@@ -54,12 +57,7 @@ class GenerateABFTBenchmarking {
 		/* Set tilesizes for v1 and v2 */
 		val TT = _tileSizes.get(0)
 		val v1TileSizes = _tileSizes
-		val kernel = system.identify_convolution
-		val radius = kernel.key
-		val v2TXs = (1..<_tileSizes.size).map[i |
-				_tileSizes.get(i) + 2 * TT * radius
-		]
-		val v2TileSizes = #[TT] + v2TXs
+		var v2TileSizes = null as int[]
 		
 		/* Code generation */
 		val srcOutDir = outDir + '/src'
@@ -68,18 +66,30 @@ class GenerateABFTBenchmarking {
 		system.generateSystemCode(system.baselineSchedule(), system.baselineMemoryMap, Version.BASELINE, v1TileSizes).save(srcOutDir, system.name + '.c')
 		var systemV1 = null as AlphaSystem
 		var systemV2 = null as AlphaSystem
+		var systemV3 = null as AlphaSystem
 		if (version === null || version == Version.ABFT_V1) {
 			systemV1 = root.copyAE.systems.get(0)
 			systemV1.insertChecksumV1(v1TileSizes).normalize
-			systemV1.generateSystemCode(systemV1.v1Schedule(v1TileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, v1TileSizes).save(srcOutDir, systemV1.name + '.c')
+//			systemV1.generateSystemCode(systemV1.v1Schedule(v1TileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, v1TileSizes).save(srcOutDir, systemV1.name + '.c')
 		}
 		if (version === null || version == Version.ABFT_V2) {
+			val kernel = system.identify_convolution
+			val radius = kernel.key
+			val v2TXs = (1..<_tileSizes.size).map[i |
+					_tileSizes.get(i) + 2 * TT * radius
+			]
+			v2TileSizes = #[TT] + v2TXs
 			systemV2 = root.copyAE.systems.get(0)
 			systemV2.insertChecksumV2(v2TileSizes).normalize
-			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, v2TileSizes).save(srcOutDir, systemV2.name + '.c')
+//			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, v2TileSizes).save(srcOutDir, systemV2.name + '.c')
 		}
-		system.generateWrapper(systemV1, systemV2, system.baselineMemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
-		system.generateMakefile(systemV1, systemV2, v1TileSizes).save(outDir, 'Makefile')
+		if (version === null || version == Version.ABFT_V3) {
+			systemV3 = root.copyAE.systems.get(0)
+			systemV3.insertChecksumV3(_tileSizes).normalize
+			systemV3.generateSystemCode(systemV3.v3Schedule(_tileSizes), systemV3.v3MemoryMap, Version.ABFT_V3, _tileSizes).save(srcOutDir, systemV3.name + '.c')
+		}
+		system.generateWrapper(systemV1, systemV2, systemV3, system.v3MemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
+		system.generateMakefile(systemV1, systemV2, systemV3, v1TileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
 	}
 	
@@ -116,6 +126,7 @@ class GenerateABFTBenchmarking {
 		switch (str.toUpperCase) {
 			case 'V1' : Version.ABFT_V1
 			case 'V2' : Version.ABFT_V2
+			case 'V3' : Version.ABFT_V3
 			default : defaultValue	
 		}
 	}

@@ -63,15 +63,7 @@ public class GenerateABFTBenchmarking {
       GenerateABFTBenchmarking.thenQuitWithError((_size_3 > 1), "error: only systems with a single body are supported by this tool");
       final Integer TT = _tileSizes.get(0);
       final List<Integer> v1TileSizes = _tileSizes;
-      final Pair<Integer, Map<List<Integer>, Double>> kernel = ABFT.identify_convolution(system);
-      final Integer radius = kernel.getKey();
-      int _size_4 = _tileSizes.size();
-      final Function1<Integer, Integer> _function_1 = (Integer i) -> {
-        Integer _get = _tileSizes.get((i).intValue());
-        return Integer.valueOf(((_get).intValue() + ((2 * (TT).intValue()) * (radius).intValue())));
-      };
-      final Iterable<Integer> v2TXs = IterableExtensions.<Integer, Integer>map(new ExclusiveRange(1, _size_4, true), _function_1);
-      final Iterable<Integer> v2TileSizes = Iterables.<Integer>concat(Collections.<Integer>unmodifiableList(CollectionLiterals.<Integer>newArrayList(TT)), v2TXs);
+      int[] v2TileSizes = ((int[]) null);
       final String srcOutDir = (GenerateABFTBenchmarking.outDir + "/src");
       String _generateSystemCode = SystemCodeGen.generateSystemCode(system, BenchmarkInstance.baselineSchedule(system), BenchmarkInstance.baselineMemoryMap(system), Version.BASELINE, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)));
       String _name = system.getName();
@@ -79,27 +71,38 @@ public class GenerateABFTBenchmarking {
       GenerateABFTBenchmarking.save(_generateSystemCode, srcOutDir, _plus);
       AlphaSystem systemV1 = ((AlphaSystem) null);
       AlphaSystem systemV2 = ((AlphaSystem) null);
+      AlphaSystem systemV3 = ((AlphaSystem) null);
       if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V1))) {
         systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
         GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV1(systemV1, ((int[])Conversions.unwrapArray(v1TileSizes, int.class))));
-        String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV1, BenchmarkInstance.v1Schedule(systemV1, ((int[])Conversions.unwrapArray(v1TileSizes, int.class))), BenchmarkInstance.v1MemoryMap(systemV1), Version.ABFT_V1, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)));
-        String _name_1 = systemV1.getName();
-        String _plus_1 = (_name_1 + ".c");
-        GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_1);
       }
       if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V2))) {
+        final Pair<Integer, Map<List<Integer>, Double>> kernel = ABFT.identify_convolution(system);
+        final Integer radius = kernel.getKey();
+        int _size_4 = _tileSizes.size();
+        final Function1<Integer, Integer> _function_1 = (Integer i) -> {
+          Integer _get = _tileSizes.get((i).intValue());
+          return Integer.valueOf(((_get).intValue() + ((2 * (TT).intValue()) * (radius).intValue())));
+        };
+        final Iterable<Integer> v2TXs = IterableExtensions.<Integer, Integer>map(new ExclusiveRange(1, _size_4, true), _function_1);
+        Iterable<Integer> _plus_1 = Iterables.<Integer>concat(Collections.<Integer>unmodifiableList(CollectionLiterals.<Integer>newArrayList(TT)), v2TXs);
+        v2TileSizes = ((int[])Conversions.unwrapArray(_plus_1, int.class));
         systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV2(systemV2, ((int[])Conversions.unwrapArray(v2TileSizes, int.class))));
-        String _generateSystemCode_2 = SystemCodeGen.generateSystemCode(systemV2, BenchmarkInstance.v2Schedule(systemV2, (TT).intValue()), BenchmarkInstance.v2MemoryMap(systemV2), Version.ABFT_V2, ((int[])Conversions.unwrapArray(v2TileSizes, int.class)));
-        String _name_2 = systemV2.getName();
-        String _plus_2 = (_name_2 + ".c");
-        GenerateABFTBenchmarking.save(_generateSystemCode_2, srcOutDir, _plus_2);
+        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV2(systemV2, v2TileSizes));
       }
-      String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, BenchmarkInstance.baselineMemoryMap(system), Version.WRAPPER, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)), ((int[])Conversions.unwrapArray(v2TileSizes, int.class)));
-      String _name_3 = system.getName();
-      String _plus_3 = (_name_3 + "-wrapper.c");
+      if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V3))) {
+        systemV3 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
+        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV3(systemV3, ((int[])Conversions.unwrapArray(_tileSizes, int.class))));
+        String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV3, BenchmarkInstance.v3Schedule(systemV3, ((int[])Conversions.unwrapArray(_tileSizes, int.class))), BenchmarkInstance.v3MemoryMap(systemV3), Version.ABFT_V3, ((int[])Conversions.unwrapArray(_tileSizes, int.class)));
+        String _name_1 = systemV3.getName();
+        String _plus_2 = (_name_1 + ".c");
+        GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_2);
+      }
+      String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, systemV3, BenchmarkInstance.v3MemoryMap(system), Version.WRAPPER, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)), v2TileSizes);
+      String _name_2 = system.getName();
+      String _plus_3 = (_name_2 + "-wrapper.c");
       GenerateABFTBenchmarking.save(_generateWrapper, srcOutDir, _plus_3);
-      GenerateABFTBenchmarking.save(Makefile.generateMakefile(system, systemV1, systemV2, ((int[])Conversions.unwrapArray(v1TileSizes, int.class))), GenerateABFTBenchmarking.outDir, "Makefile");
+      GenerateABFTBenchmarking.save(Makefile.generateMakefile(system, systemV1, systemV2, systemV3, ((int[])Conversions.unwrapArray(v1TileSizes, int.class))), GenerateABFTBenchmarking.outDir, "Makefile");
       GenerateABFTBenchmarking.save(Timer.generateTimer(), srcOutDir, "time.c");
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
@@ -173,6 +176,9 @@ public class GenerateABFTBenchmarking {
             break;
           case "V2":
             _switchResult = Version.ABFT_V2;
+            break;
+          case "V3":
+            _switchResult = Version.ABFT_V3;
             break;
           default:
             _switchResult = defaultValue;
