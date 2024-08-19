@@ -1,5 +1,6 @@
 package alpha.glue.v2
 
+import alpha.abft.ABFTv3
 import alpha.abft.codegen.Version
 import alpha.codegen.BaseDataType
 import alpha.loader.AlphaLoader
@@ -85,7 +86,7 @@ class GenerateABFTBenchmarking {
 		}
 		if (version === null || version == Version.ABFT_V3) {
 			systemV3 = root.copyAE.systems.get(0)
-			systemV3.insertChecksumV3(_tileSizes).normalize
+			ABFTv3.insertChecksum(systemV3, _tileSizes).normalize
 			systemV3.generateSystemCode(systemV3.v3Schedule(_tileSizes), systemV3.v3MemoryMap, Version.ABFT_V3, _tileSizes).save(srcOutDir, systemV3.name + '.c')
 		}
 		system.generateWrapper(systemV1, systemV2, systemV3, system.v3MemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')

@@ -1,6 +1,7 @@
 package alpha.glue.v2;
 
 import alpha.abft.ABFT;
+import alpha.abft.ABFTv3;
 import alpha.abft.codegen.BenchmarkInstance;
 import alpha.abft.codegen.Makefile;
 import alpha.abft.codegen.SystemCodeGen;
@@ -92,7 +93,7 @@ public class GenerateABFTBenchmarking {
       }
       if (((GenerateABFTBenchmarking.version == null) || Objects.equal(GenerateABFTBenchmarking.version, Version.ABFT_V3))) {
         systemV3 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-        GenerateABFTBenchmarking.normalize(ABFT.insertChecksumV3(systemV3, ((int[])Conversions.unwrapArray(_tileSizes, int.class))));
+        GenerateABFTBenchmarking.normalize(ABFTv3.insertChecksum(systemV3, ((int[])Conversions.unwrapArray(_tileSizes, int.class))));
         String _generateSystemCode_1 = SystemCodeGen.generateSystemCode(systemV3, BenchmarkInstance.v3Schedule(systemV3, ((int[])Conversions.unwrapArray(_tileSizes, int.class))), BenchmarkInstance.v3MemoryMap(systemV3), Version.ABFT_V3, ((int[])Conversions.unwrapArray(_tileSizes, int.class)));
         String _name_1 = systemV3.getName();
         String _plus_2 = (_name_1 + ".c");
