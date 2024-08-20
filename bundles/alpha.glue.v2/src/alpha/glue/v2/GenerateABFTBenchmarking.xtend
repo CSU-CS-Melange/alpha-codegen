@@ -89,7 +89,7 @@ class GenerateABFTBenchmarking {
 			ABFTv3.insertChecksum(systemV3, _tileSizes).normalize
 			systemV3.generateSystemCode(systemV3.v3Schedule(_tileSizes), systemV3.v3MemoryMap, Version.ABFT_V3, _tileSizes).save(srcOutDir, systemV3.name + '.c')
 		}
-		system.generateWrapper(systemV1, systemV2, systemV3, system.v3MemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
+		system.generateWrapper(systemV1, systemV2, systemV3, systemV3.v3MemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
 		system.generateMakefile(systemV1, systemV2, systemV3, v1TileSizes).save(outDir, 'Makefile')
 		generateTimer.save(srcOutDir, 'time.c')
 	}

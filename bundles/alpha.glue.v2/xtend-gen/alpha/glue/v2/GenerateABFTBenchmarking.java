@@ -99,7 +99,7 @@ public class GenerateABFTBenchmarking {
         String _plus_2 = (_name_1 + ".c");
         GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_2);
       }
-      String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, systemV3, BenchmarkInstance.v3MemoryMap(system), Version.WRAPPER, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)), v2TileSizes);
+      String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, systemV3, BenchmarkInstance.v3MemoryMap(systemV3), Version.WRAPPER, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)), v2TileSizes);
       String _name_2 = system.getName();
       String _plus_3 = (_name_2 + "-wrapper.c");
       GenerateABFTBenchmarking.save(_generateWrapper, srcOutDir, _plus_3);
