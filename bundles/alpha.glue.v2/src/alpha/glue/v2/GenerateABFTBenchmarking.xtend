@@ -88,6 +88,7 @@ class GenerateABFTBenchmarking {
 			systemV3 = root.copyAE.systems.get(0)
 			systemV3 = ABFTv3.insertChecksum(systemV3, _tileSizes).normalize
 			systemV3.generateSystemCode(systemV3.v3Schedule(_tileSizes), systemV3.v3MemoryMap, Version.ABFT_V3, _tileSizes).save(srcOutDir, systemV3.name + '.c')
+			systemV3.dbgASave(srcOutDir)
 		}
 		system.generateWrapper(systemV1, systemV2, systemV3, systemV3.v3MemoryMap, Version.WRAPPER, v1TileSizes, v2TileSizes).save(srcOutDir, system.name + '-wrapper.c')
 		system.generateMakefile(systemV1, systemV2, systemV3, v1TileSizes).save(outDir, 'Makefile')
@@ -108,6 +109,24 @@ class GenerateABFTBenchmarking {
 		val fileName = dir + '/' + system.name + '.alpha'
 		AlphaModelSaver.writeToFile(fileName, AShow.print(system))
 		system
+	}
+	
+	def static dbgASave(AlphaSystem system, String dir) {
+		
+		val copySys = system.copyAE
+		
+		val Y = copySys.outputs.get(0)
+		val I = copySys.locals.findFirst[name == 'I']
+		
+		copySys.outputs.remove(Y)
+		copySys.locals.add(Y)
+		
+		copySys.locals.remove(I)
+		copySys.outputs.add(I)
+		
+		val fileName = dir + '/' + copySys.name + '.alpha'
+		AlphaModelSaver.writeToFile(fileName, AShow.print(copySys))
+		copySys
 	}
 	
 	def static pprint(AlphaVisitable av, String msg) {

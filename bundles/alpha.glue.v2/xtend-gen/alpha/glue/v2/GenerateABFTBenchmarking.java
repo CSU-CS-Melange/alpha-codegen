@@ -15,6 +15,7 @@ import alpha.model.AlphaRoot;
 import alpha.model.AlphaSystem;
 import alpha.model.AlphaVisitable;
 import alpha.model.SystemBody;
+import alpha.model.Variable;
 import alpha.model.transformation.Normalize;
 import alpha.model.transformation.reduction.NormalizeReduction;
 import alpha.model.util.AShow;
@@ -98,6 +99,7 @@ public class GenerateABFTBenchmarking {
         String _name_1 = systemV3.getName();
         String _plus_2 = (_name_1 + ".c");
         GenerateABFTBenchmarking.save(_generateSystemCode_1, srcOutDir, _plus_2);
+        GenerateABFTBenchmarking.dbgASave(systemV3, srcOutDir);
       }
       String _generateWrapper = WrapperCodeGen.generateWrapper(system, systemV1, systemV2, systemV3, BenchmarkInstance.v3MemoryMap(systemV3), Version.WRAPPER, ((int[])Conversions.unwrapArray(v1TileSizes, int.class)), v2TileSizes);
       String _name_2 = system.getName();
@@ -132,6 +134,29 @@ public class GenerateABFTBenchmarking {
       final String fileName = (_plus + ".alpha");
       AlphaModelSaver.writeToFile(fileName, AShow.print(system));
       _xblockexpression = system;
+    }
+    return _xblockexpression;
+  }
+
+  public static AlphaSystem dbgASave(final AlphaSystem system, final String dir) {
+    AlphaSystem _xblockexpression = null;
+    {
+      final AlphaSystem copySys = AlphaUtil.<AlphaSystem>copyAE(system);
+      final Variable Y = copySys.getOutputs().get(0);
+      final Function1<Variable, Boolean> _function = (Variable it) -> {
+        String _name = it.getName();
+        return Boolean.valueOf(Objects.equal(_name, "I"));
+      };
+      final Variable I = IterableExtensions.<Variable>findFirst(copySys.getLocals(), _function);
+      copySys.getOutputs().remove(Y);
+      copySys.getLocals().add(Y);
+      copySys.getLocals().remove(I);
+      copySys.getOutputs().add(I);
+      String _name = copySys.getName();
+      String _plus = ((dir + "/") + _name);
+      final String fileName = (_plus + ".alpha");
+      AlphaModelSaver.writeToFile(fileName, AShow.print(copySys));
+      _xblockexpression = copySys;
     }
     return _xblockexpression;
   }
