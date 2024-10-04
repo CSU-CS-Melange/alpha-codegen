@@ -71,7 +71,7 @@ class GenerateABFTBenchmarking {
 		if (version === null || version == Version.ABFT_V1) {
 			systemV1 = root.copyAE.systems.get(0)
 			systemV1.insertChecksumV1(v1TileSizes).normalize
-//			systemV1.generateSystemCode(systemV1.v1Schedule(v1TileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, v1TileSizes).save(srcOutDir, systemV1.name + '.c')
+			systemV1.generateSystemCode(systemV1.v1Schedule(v1TileSizes), systemV1.v1MemoryMap, Version.ABFT_V1, v1TileSizes).save(srcOutDir, systemV1.name + '.c')
 		}
 		if (version === null || version == Version.ABFT_V2) {
 			val kernel = system.identify_convolution
@@ -82,7 +82,7 @@ class GenerateABFTBenchmarking {
 			v2TileSizes = #[TT] + v2TXs
 			systemV2 = root.copyAE.systems.get(0)
 			systemV2.insertChecksumV2(v2TileSizes).normalize
-//			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, v2TileSizes).save(srcOutDir, systemV2.name + '.c')
+			systemV2.generateSystemCode(systemV2.v2Schedule(TT), systemV2.v2MemoryMap, Version.ABFT_V2, v2TileSizes).save(srcOutDir, systemV2.name + '.c')
 		}
 		if (version === null || version == Version.ABFT_V3) {
 			systemV3 = root.copyAE.systems.get(0)
