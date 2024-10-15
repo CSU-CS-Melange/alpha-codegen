@@ -2,6 +2,7 @@
 bin/
 .metadata
 .settings
+*.jar
 
 # maven build output dir
 target/
