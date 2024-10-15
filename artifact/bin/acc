@@ -16,15 +16,13 @@ BASE_NAME=`basename $0`
 
 function usage {
   echo "usage:" 
-  echo "  acc [-m] [-v1 alpha_file] [-v2 alpha_file] [-o out_dir]"
+  echo "  acc [-m] [-o out_dir] [-l | --face-lattice DOMAIN]"
   echo "      [-s [--target-complexity] [--num-simplifications] [--try-splitting]]"
   echo "      [ALPHA_FILE]"
   echo "options:"
-  echo "    -v1, --gen-v1-from         : Input Alpha file (*.alpha) used to generate makefile,"
-  echo "                                 wrapper, and verification files"
-  echo "    -v2, --gen-v2-from         : Input Alpha file (*.alpha) used to generate main system"
   echo "    -o,  --out-dir             : Directory in which to place the output files, if the"
-  echo "                                 path does not exist then it will be created (default: .)"
+  echo "                                 path does not exist then it will be created."
+  echo "                                 (default: ./<system_name>/)"
   echo "    -d,  --data-type           : Data type to use for program variables, may be 'int',"
   echo "                                 'long', 'float', or 'double' (default: 'float')"
   echo "    -m,  --make                : Run make to build the generated files. Note, this may"
@@ -38,13 +36,14 @@ function usage {
   echo "         --target-complexity   : Target simplified complexity (default: one less than"
   echo "                                 the input program's complexity)"
   echo "         --try-splitting       : Consider splits during simplification (default: false)"
-  echo "    -u,  --substitute          : A comma-delimited list of variables which will have all"
-  echo "                                 occurences substituted by its definition."
+  echo "    -l                         : Build and show the face lattice for all reductions in"
+  echo "                                 the input program. Ignored if --face-lattice specified."
+  echo "         --face-lattice        : Build and show the face lattice for the DOMAIN. The"
+  echo "                                 value of DOMAIN should be an isl basic set string."
   echo "    -v,  --verbose             : Emit debug information during simplification exploration"
   echo "arguments:"
   echo "    ALPHA_FILE                 : Input Alpha file used to generate main ystem, makefile,"
-  echo "                                 wrapper, and verification files. (required if neither "
-  echo "                                 -v1 nor -v2 is specified)"
+  echo "                                 wrapper, and verification files."
   echo ""
 }
 
@@ -79,6 +78,10 @@ function assert_dependencies_exist {
   assert_dependency_exists cc
 }
 
+function parse_system_name {
+  file_name=$1
+  cat $file_name | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'
+}
 
 #######################################################################
 # arg parsing and preprocessing
@@ -146,6 +149,20 @@ while (( "$#" )); do
         exit 1
       fi
       ;;
+    -l)
+      face_lattice=1
+      shift 1
+      ;;
+    --face-lattice)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        face_lattice=1
+        face_lattice_str=$2
+        shift 2
+      else
+        echo "argument missing for -- $1" >&2
+        exit 1
+      fi
+      ;;
     -o|--out-dir)
       if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
         out_dir=$2
@@ -190,9 +207,8 @@ while (( "$#" )); do
 done
 
 eval set -- "$params";
-
 # assert that at least one input alpha file was specified
-if [[ -z "$v1_file" && -z "$v2_file" && -z "$1" ]]; then
+if [[ -z "$v1_file" && -z "$v2_file" && -z "$1" && -z "$face_lattice" ]]; then
   echo "No input alpha_file was specified"
   usage
   exit 1
@@ -209,31 +225,52 @@ assert_is_file_if_non_null $1
 
 v1_gen_alpha_file=$1
 gen_legacy_supportingC=$1
-if [[ -n "$v1_file" ]]; then 
-  v1_gen_alpha_file=$v1_file; 
+if [[ -n "$v1_file" ]]; then
+  v1_gen_alpha_file=$v1_file;
   gen_legacy_supportingC=1
 fi
 
 v2_gen_alpha_file=$1
 gen_new_writeC=$1
-if [[ -n "$v2_file" ]]; then 
-  v2_gen_alpha_file=$v2_file; 
+if [[ -n "$v2_file" ]]; then
+  v2_gen_alpha_file=$v2_file;
   gen_new_writeC=1
 fi
+
 
 # check and exit if dependencies are not available
 assert_dependencies_exist
 
 # make out directory if it doesn't already exist
+if [[ -n "$out_dir" && -n "$1" ]]; then
+  system_name=`parse_system_name $v2_gen_alpha_file`
+  if [[ -z "$system_name" ]]; then
+    echo "[$BASE_NAME]: error, failed to parse system name from input program, check that syntax is correct."
+    exit 1
+  fi
+  out_dir="$out_dir/$system_name"
+fi
 mkdir -p $out_dir
+
+#######################################################################
+# face lattice
+#######################################################################
+if [[ -n "$face_lattice" ]]; then
+  export ACC_ALPHA_FILE=$v2_gen_alpha_file \
+         ACC_FACE_LATTICE="$face_lattice" \
+         ACC_FACE_LATTICE_STR="$face_lattice_str" \
+         ACC_OUT_DIR=$out_dir
+  java -jar ${BASE_DIR}/lib/alpha.glue.v2.jar
+  exit 0
+fi
 
 #######################################################################
 # codegen - system C file
 #######################################################################
 
-if [[ -n "$gen_new_writeC" ]]; then
+if [[ -n "$gen_new_writeC" || -n "$face_lattice" ]]; then
   # grab the system name from the alpha_file
-  system_name=`cat $v2_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+  system_name=`parse_system_name $v2_gen_alpha_file`
   
   # using v2 alpha, create the v1 *.ab file and new system demand driven *.c file
   echo "[$BASE_NAME]: reading '$v2_gen_alpha_file' file"
@@ -245,8 +282,9 @@ if [[ -n "$gen_new_writeC" ]]; then
          ACC_TRY_SPLITTING=$try_splitting \
          ACC_VERBOSE=$verbose \
          ACC_BASE_DATATYPE=$data_type \
+         ACC_FACE_LATTICE="$face_lattice" \
          ACC_SUBSTITUTE=$substitute
-  java -jar ${BASE_DIR}/alpha.glue.v2.jar
+  java -jar ${BASE_DIR}/lib/alpha.glue.v2.jar
   statuz="$?"
   if [[ -z "$simplify" ]]; then
     assert_file_created ${out_dir}/${system_name}.c
@@ -255,7 +293,8 @@ if [[ -n "$gen_new_writeC" ]]; then
     if [[ "$statuz" != "0" ]]; then exit 1; fi
     for f in ${out_dir}/simplifications/*/*.alpha
     do
-      assert_file_created ${out_dir}/simplifications/v0/${system_name}.c
+      vx=`echo $f | sed 's~.*/v\([0-9]*\)/.*~v\1~'`
+      assert_file_created ${out_dir}/simplifications/$vx/${system_name}.c
     done
   fi
 fi
@@ -266,7 +305,7 @@ fi
 
 if [[ -n "$gen_legacy_supportingC" ]]; then
   # grab the system name from the alpha_file
-  system_name=`cat $v1_gen_alpha_file | grep affine | head -n1 | sed 's~.*affine \([^ ][^ ]*\) .*~\1~'`
+  system_name=`parse_system_name $v1_gen_alpha_file`
 
   # generate *.ab file
   echo "[$BASE_NAME]: reading '$v1_gen_alpha_file' file"
@@ -275,12 +314,12 @@ if [[ -n "$gen_legacy_supportingC" ]]; then
          ACC_LEGACY_SAVE=1 \
          ACC_BASE_DATATYPE=$data_type
   export -n ACC_SIMPLIFY
-  java -jar ${BASE_DIR}/alpha.glue.v2.jar
+  java -jar ${BASE_DIR}/lib/alpha.glue.v2.jar
   assert_file_created ${out_dir}/${system_name}.ab
   
   echo "[$BASE_NAME]: reading '${out_dir}/${system_name}.ab' file"
   # using v1 alpha, create the supporting wrapper, makefile, and verification *.c files
-  java -jar ${BASE_DIR}/alpha.glue.v1.jar \
+  java -jar ${BASE_DIR}/lib/alpha.glue.v1.jar \
     ${out_dir}/${system_name}.ab \
     $out_dir
   assert_file_created ${out_dir}/${system_name}-wrapper.c

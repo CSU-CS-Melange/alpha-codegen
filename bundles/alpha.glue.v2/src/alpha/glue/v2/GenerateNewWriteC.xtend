@@ -17,10 +17,12 @@ import java.util.List
 
 import static java.lang.System.getenv
 
-import static extension alpha.abft.ABFT.insertChecksumV1
-import static extension alpha.abft.ABFT.insertChecksumV2
 import static extension alpha.model.ComplexityCalculator.complexity
-import static extension alpha.model.util.AlphaUtil.copyAE
+import static extension alpha.model.util.ISLUtil.toISLSet
+import alpha.model.util.FaceLattice
+import alpha.model.ReduceExpression
+import org.eclipse.xtext.EcoreUtil2
+import alpha.model.util.AShow
 
 /**
  * This class is a wrapper around the new demand driven code generator.
@@ -39,13 +41,19 @@ class GenerateNewWriteC {
 	static int targetComplexity = parseInt(getenv('ACC_TARGET_COMPLEXITY'), -1)
 	static boolean trySplitting = !(getenv('ACC_TRY_SPLITTING').isNullOrEmpty)
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
-	static int[] abftTileSizes = parseIntList(getenv('ACC_ABFT_TILE_SIZES'))
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
+	static String faceLattice = parseFaceLattice(getenv('ACC_FACE_LATTICE'), '')
+	static String faceLatticeStr = parseFaceLattice(getenv('ACC_FACE_LATTICE_STR'), '')
 	static List<String> substituteNames = getenv('ACC_SUBSTITUTE').parseList
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
 		Integer.parseInt(str)
+	}
+	
+	def static parseFaceLattice(String str, String defaultValue) {
+		if (str.isNullOrEmpty) return defaultValue
+		str
 	}
 	
 	def static parseBaseDataType(String str, BaseDataType defaultValue) {
@@ -65,15 +73,35 @@ class GenerateNewWriteC {
 	
 	def static void main(String[] args) {
 
+		// if face lattice str was passed, then process it and exit
+		if (faceLatticeStr != '') {
+			val set = faceLatticeStr.toISLSet
+			val lattice = FaceLattice.create(set)
+			println(lattice.prettyPrint)
+			return
+		}
+		
 		// check (env variable) arguments
 		(alphaFile === null).thenQuitWithError('no input alpha file specified via ACC_ALPHA_FILE')
 		(outDir === null).thenQuitWithError('no output directory specified via ACC_OUT_DIR')
-		
+				
 		// Read input alpha program
 		val root = AlphaLoader.loadAlpha(alphaFile)
 		(root.systems.size > 1).thenQuitWithError('error: only single system alpha programs are supported by this tool')
 		val system = root.systems.get(0)
 		(system.systemBodies.size > 1).thenQuitWithError('error: only systems with a single body are supported by this tool')
+		
+		// if face lattice was passed, then emit all lattices of reductions in prog
+		if (faceLattice != '') {
+			val ret = EcoreUtil2.getAllContentsOfType(system, ReduceExpression).map[re |
+				'''
+					Expression:
+					  «AShow.print(re)»
+					«re.facet.lattice.prettyPrint»
+				'''].join('\n')
+			println(ret)
+			return
+		}
 		
 		for (variableName : substituteNames) {
 			// Make sure there is a variable with the desired name.
@@ -85,22 +113,9 @@ class GenerateNewWriteC {
 			RemoveUnusedEquations.apply(system)
 		}
 		
-		
-		
 		if (runLegacySave) {			
 			// Generate the v1 alpha file from the input program along
 			system.generateV1Alpha(outDir)
-		}
-		
-		if (abftTileSizes.size > 0) {
-			val abftOutDir = '''«outDir»/abft'''
-			val systemV1 = root.copyAE.systems.get(0)
-			systemV1.insertChecksumV1(abftTileSizes)
-			systemV1.generateWriteC(abftOutDir)
-			
-			val systemV2 = root.copyAE.systems.get(0)
-			systemV2.insertChecksumV2(abftTileSizes)
-			systemV2.generateWriteC(abftOutDir)
 		}
 		
 		if (runSimplification) {

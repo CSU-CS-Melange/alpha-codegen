@@ -10,5 +10,4 @@ Require-Bundle: org.eclipse.emf.ecore,
  alpha.model;bundle-version="0.1.0",
  alpha.model.xtext;bundle-version="0.1.0",
  alpha.targetmapping.xtext;bundle-version="0.1.0",
- alpha.loader;bundle-version="0.1.0",
- alpha.abft;bundle-version="1.0.0"
+ alpha.loader;bundle-version="0.1.0"

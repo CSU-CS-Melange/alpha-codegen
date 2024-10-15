@@ -1,6 +1,5 @@
 package alpha.glue.v2;
 
-import alpha.abft.ABFT;
 import alpha.codegen.BaseDataType;
 import alpha.codegen.Program;
 import alpha.codegen.ProgramPrinter;
@@ -10,19 +9,24 @@ import alpha.model.AlphaModelSaver;
 import alpha.model.AlphaRoot;
 import alpha.model.AlphaSystem;
 import alpha.model.ComplexityCalculator;
+import alpha.model.ReduceExpression;
 import alpha.model.Variable;
 import alpha.model.transformation.RemoveUnusedEquations;
 import alpha.model.transformation.SubstituteByDef;
 import alpha.model.transformation.automation.OptimalSimplifyingReductions;
-import alpha.model.util.AlphaUtil;
+import alpha.model.util.AShow;
+import alpha.model.util.FaceLattice;
+import alpha.model.util.ISLUtil;
 import alpha.model.util.ShowLegacyAlpha;
 import com.google.common.base.Objects;
+import fr.irisa.cairn.jnimap.isl.ISLSet;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import org.eclipse.xtend2.lib.StringConcatenation;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;
 import org.eclipse.xtext.xbase.lib.Exceptions;
@@ -56,9 +60,11 @@ public class GenerateNewWriteC {
 
   private static boolean verbose = (!StringExtensions.isNullOrEmpty(System.getenv("ACC_VERBOSE")));
 
-  private static int[] abftTileSizes = ((int[])Conversions.unwrapArray(GenerateNewWriteC.parseIntList(System.getenv("ACC_ABFT_TILE_SIZES")), int.class));
-
   private static BaseDataType baseDataType = GenerateNewWriteC.parseBaseDataType(System.getenv("ACC_BASE_DATATYPE"), BaseDataType.FLOAT);
+
+  private static String faceLattice = GenerateNewWriteC.parseFaceLattice(System.getenv("ACC_FACE_LATTICE"), "");
+
+  private static String faceLatticeStr = GenerateNewWriteC.parseFaceLattice(System.getenv("ACC_FACE_LATTICE_STR"), "");
 
   private static List<String> substituteNames = GenerateNewWriteC.parseList(System.getenv("ACC_SUBSTITUTE"));
 
@@ -70,6 +76,18 @@ public class GenerateNewWriteC {
         return defaultValue;
       }
       _xblockexpression = Integer.parseInt(str);
+    }
+    return _xblockexpression;
+  }
+
+  public static String parseFaceLattice(final String str, final String defaultValue) {
+    String _xblockexpression = null;
+    {
+      boolean _isNullOrEmpty = StringExtensions.isNullOrEmpty(str);
+      if (_isNullOrEmpty) {
+        return defaultValue;
+      }
+      _xblockexpression = str;
     }
     return _xblockexpression;
   }
@@ -115,6 +133,13 @@ public class GenerateNewWriteC {
 
   public static void main(final String[] args) {
     try {
+      boolean _notEquals = (!Objects.equal(GenerateNewWriteC.faceLatticeStr, ""));
+      if (_notEquals) {
+        final ISLSet set = ISLUtil.toISLSet(GenerateNewWriteC.faceLatticeStr);
+        final FaceLattice lattice = FaceLattice.create(set);
+        InputOutput.<String>println(lattice.prettyPrint());
+        return;
+      }
       GenerateNewWriteC.thenQuitWithError((GenerateNewWriteC.alphaFile == null), "no input alpha file specified via ACC_ALPHA_FILE");
       GenerateNewWriteC.thenQuitWithError((GenerateNewWriteC.outDir == null), "no output directory specified via ACC_OUT_DIR");
       final AlphaRoot root = AlphaLoader.loadAlpha(GenerateNewWriteC.alphaFile);
@@ -123,18 +148,37 @@ public class GenerateNewWriteC {
       final AlphaSystem system = root.getSystems().get(0);
       int _size_1 = system.getSystemBodies().size();
       GenerateNewWriteC.thenQuitWithError((_size_1 > 1), "error: only systems with a single body are supported by this tool");
+      boolean _notEquals_1 = (!Objects.equal(GenerateNewWriteC.faceLattice, ""));
+      if (_notEquals_1) {
+        final Function1<ReduceExpression, String> _function = (ReduceExpression re) -> {
+          StringConcatenation _builder = new StringConcatenation();
+          _builder.append("Expression:");
+          _builder.newLine();
+          _builder.append("  ");
+          String _print = AShow.print(re);
+          _builder.append(_print, "  ");
+          _builder.newLineIfNotEmpty();
+          String _prettyPrint = re.getFacet().getLattice().prettyPrint();
+          _builder.append(_prettyPrint);
+          _builder.newLineIfNotEmpty();
+          return _builder.toString();
+        };
+        final String ret = IterableExtensions.join(ListExtensions.<ReduceExpression, String>map(EcoreUtil2.<ReduceExpression>getAllContentsOfType(system, ReduceExpression.class), _function), "\n");
+        InputOutput.<String>println(ret);
+        return;
+      }
       for (final String variableName : GenerateNewWriteC.substituteNames) {
         {
-          final Function1<Variable, Boolean> _function = (Variable it) -> {
+          final Function1<Variable, Boolean> _function_1 = (Variable it) -> {
             String _name = it.getName();
             return Boolean.valueOf((!Objects.equal(_name, variableName)));
           };
-          GenerateNewWriteC.thenQuitWithError(IterableExtensions.<Variable>forall(system.getVariables(), _function), (("Cannot find the variable \"" + variableName) + "\" to substitute."));
-          final Function1<Variable, Boolean> _function_1 = (Variable it) -> {
+          GenerateNewWriteC.thenQuitWithError(IterableExtensions.<Variable>forall(system.getVariables(), _function_1), (("Cannot find the variable \"" + variableName) + "\" to substitute."));
+          final Function1<Variable, Boolean> _function_2 = (Variable it) -> {
             String _name = it.getName();
             return Boolean.valueOf(Objects.equal(_name, variableName));
           };
-          final Variable variable = IterableExtensions.<Variable>head(IterableExtensions.<Variable>filter(system.getVariables(), _function_1));
+          final Variable variable = IterableExtensions.<Variable>head(IterableExtensions.<Variable>filter(system.getVariables(), _function_2));
           SubstituteByDef.apply(system, variable);
           RemoveUnusedEquations.apply(system);
         }
@@ -142,46 +186,32 @@ public class GenerateNewWriteC {
       if (GenerateNewWriteC.runLegacySave) {
         GenerateNewWriteC.generateV1Alpha(system, GenerateNewWriteC.outDir);
       }
-      int _size_2 = ((List<Integer>)Conversions.doWrapArray(GenerateNewWriteC.abftTileSizes)).size();
-      boolean _greaterThan = (_size_2 > 0);
-      if (_greaterThan) {
-        StringConcatenation _builder = new StringConcatenation();
-        _builder.append(GenerateNewWriteC.outDir);
-        _builder.append("/abft");
-        final String abftOutDir = _builder.toString();
-        final AlphaSystem systemV1 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-        ABFT.insertChecksumV1(systemV1, GenerateNewWriteC.abftTileSizes);
-        GenerateNewWriteC.generateWriteC(systemV1, abftOutDir);
-        final AlphaSystem systemV2 = AlphaUtil.<AlphaRoot>copyAE(root).getSystems().get(0);
-        ABFT.insertChecksumV2(systemV2, GenerateNewWriteC.abftTileSizes);
-        GenerateNewWriteC.generateWriteC(systemV2, abftOutDir);
-      }
       if (GenerateNewWriteC.runSimplification) {
         final OptimalSimplifyingReductions.State[] states = GenerateNewWriteC.optimize(system);
         GenerateNewWriteC.thenQuitWithError((states == null), "No simplifications found, exiting");
-        final Function1<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>> _function = (OptimalSimplifyingReductions.State s) -> {
+        final Function1<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>> _function_1 = (OptimalSimplifyingReductions.State s) -> {
           int _indexOf = ((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)).indexOf(s);
           return Pair.<Integer, OptimalSimplifyingReductions.State>of(Integer.valueOf(_indexOf), s);
         };
-        final Consumer<Pair<Integer, OptimalSimplifyingReductions.State>> _function_1 = (Pair<Integer, OptimalSimplifyingReductions.State> pair) -> {
+        final Consumer<Pair<Integer, OptimalSimplifyingReductions.State>> _function_2 = (Pair<Integer, OptimalSimplifyingReductions.State> pair) -> {
           final OptimalSimplifyingReductions.State state = pair.getValue();
           final AlphaSystem stateSystem = state.root().getSystems().get(0);
-          StringConcatenation _builder_1 = new StringConcatenation();
-          _builder_1.append(GenerateNewWriteC.outDir);
-          _builder_1.append("/simplifications/v");
+          StringConcatenation _builder = new StringConcatenation();
+          _builder.append(GenerateNewWriteC.outDir);
+          _builder.append("/simplifications/v");
           Integer _key = pair.getKey();
-          _builder_1.append(_key);
-          final String simplificationOutDir = _builder_1.toString();
+          _builder.append(_key);
+          final String simplificationOutDir = _builder.toString();
           GenerateNewWriteC.generateWriteC(stateSystem, simplificationOutDir);
-          StringConcatenation _builder_2 = new StringConcatenation();
-          _builder_2.append(simplificationOutDir);
-          _builder_2.append("/");
+          StringConcatenation _builder_1 = new StringConcatenation();
+          _builder_1.append(simplificationOutDir);
+          _builder_1.append("/");
           String _name = system.getName();
-          _builder_2.append(_name);
-          _builder_2.append(".alpha");
-          AlphaModelSaver.writeToFile(_builder_2.toString(), state.show().toString());
+          _builder_1.append(_name);
+          _builder_1.append(".alpha");
+          AlphaModelSaver.writeToFile(_builder_1.toString(), state.show().toString());
         };
-        ListExtensions.<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>>map(((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)), _function).forEach(_function_1);
+        ListExtensions.<OptimalSimplifyingReductions.State, Pair<Integer, OptimalSimplifyingReductions.State>>map(((List<OptimalSimplifyingReductions.State>)Conversions.doWrapArray(states)), _function_1).forEach(_function_2);
       } else {
         GenerateNewWriteC.generateWriteC(system, GenerateNewWriteC.outDir);
       }
