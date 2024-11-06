@@ -37,6 +37,10 @@ function usage {
   echo "                                 exploration terminates, whichever comes first (default: 1)"
   echo "         --target-complexity   : Target simplified complexity (default: one less than"
   echo "                                 the input program's complexity)"
+  echo "    -g,  --schedule            : Input Alpha file (*.alpha) used to generate a schedule"
+  echo "                                 that can be used to generate scheduled code"
+  echo "    -m,  --schedule-map        : Input Alpha file (*.alpha) used to generate a schedule"
+  echo "                                 as an ISL Union Map as opposed to an ISL Schedule"  
   echo "    -u,  --substitute          : A comma-delimited list of variables which will have all"
   echo "                                 occurences substituted by its definition."
   echo "    -v,  --verbose             : Emit debug information during simplification exploration"
@@ -99,6 +103,14 @@ while (( "$#" )); do
       ;;
     -s|--simplify)
       simplify=1;
+      shift 1
+      ;;
+    -g|--schedule)
+      schedule=1;
+      shift 1
+      ;;
+    -m|--schedule-map)
+      scheduleMap=1;
       shift 1
       ;;
     --try-splitting)
@@ -244,7 +256,10 @@ if [[ -n "$gen_new_writeC" ]]; then
          ACC_TRY_SPLITTING=$try_splitting \
          ACC_VERBOSE=$verbose \
          ACC_BASE_DATATYPE=$data_type \
-         ACC_SUBSTITUTE=$substitute
+         ACC_SUBSTITUTE=$substitute \
+         ACC_GENERATE_SCHEDULE=$schedule \
+         ACC_SCHEDULE_MAP=$scheduleMap
+         
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   statuz="$?"
   if [[ -z "$simplify" ]]; then
@@ -274,6 +289,7 @@ if [[ -n "$gen_legacy_supportingC" ]]; then
          ACC_LEGACY_SAVE=1 \
          ACC_BASE_DATATYPE=$data_type
   export -n ACC_SIMPLIFY
+  
   java -jar ${BASE_DIR}/alpha.glue.v2.jar
   assert_file_created ${out_dir}/${system_name}.ab
   
