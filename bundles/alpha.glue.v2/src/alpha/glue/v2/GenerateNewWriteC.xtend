@@ -2,7 +2,6 @@ package alpha.glue.v2
 
 import alpha.codegen.BaseDataType
 import alpha.codegen.ProgramPrinter
-import alpha.codegen.writeC.SystemConverter
 import alpha.loader.AlphaLoader
 import alpha.model.AlphaModelSaver
 import alpha.model.AlphaSystem
@@ -18,6 +17,12 @@ import static extension alpha.model.ComplexityCalculator.complexity
 import java.util.List
 import alpha.model.transformation.SubstituteByDef
 import alpha.model.transformation.RemoveUnusedEquations
+import alpha.codegen.demandDriven.WriteC
+import alpha.model.transformation.Normalize
+import alpha.model.prdg.PRDGGenerator
+import alpha.codegen.scheduledC.ScheduledC
+import alpha.model.scheduler.Scheduler
+import alpha.model.scheduler.FoutrierScheduler
 
 /**
  * This class is a wrapper around the new demand driven code generator.
@@ -38,6 +43,8 @@ class GenerateNewWriteC {
 	static boolean verbose = !(getenv('ACC_VERBOSE').isNullOrEmpty)
 	static BaseDataType baseDataType = parseBaseDataType(getenv('ACC_BASE_DATATYPE'), BaseDataType.FLOAT)
 	static List<String> substituteNames = getenv('ACC_SUBSTITUTE').parseList
+	static boolean schedule = !(getenv("ACC_GENERATE_SCHEDULE").isNullOrEmpty)
+	static boolean scheduleMap = !(getenv("ACC_SCHEDULE_MAP").isNullOrEmpty)
 
 	def static parseInt(String str, int defaultValue) {
 		if (str.isNullOrEmpty) return defaultValue
@@ -56,6 +63,7 @@ class GenerateNewWriteC {
 	
 	def static void main(String[] args) {
 
+		println("Alpha File: " + alphaFile)
 		// check (env variable) arguments
 		(alphaFile === null).thenQuitWithError('no input alpha file specified via ACC_ALPHA_FILE')
 		(outDir === null).thenQuitWithError('no output directory specified via ACC_OUT_DIR')
@@ -74,6 +82,12 @@ class GenerateNewWriteC {
 			val variable = system.variables.filter[it.name == variableName].head
 			SubstituteByDef.apply(system, variable)
 			RemoveUnusedEquations.apply(system)
+		}
+		
+		if (schedule || scheduleMap) {
+			println("HERE")
+			system.generateSchedule(scheduleMap)
+			return
 		}
 		
 		if (runLegacySave) {			
@@ -112,10 +126,22 @@ class GenerateNewWriteC {
 		osr.optimizations.get(targetComplexity)
 	}
 	
+	/** Generates a schedule for the input program using the new (v2) scheduler */
+	def static generateSchedule(AlphaSystem system, boolean map) {
+		Normalize.apply(system)
+		val prdg = PRDGGenerator.apply(system)
+		val scheduler = new FoutrierScheduler(prdg)
+		if(map) {
+			println("Schedule: \n" + scheduler.generateSchedule.map)
+		} else {
+			println("Schedule: \n" + scheduler.generateSchedule)
+		}
+	}
+	
 	/** Generates the new (v2) demand driven code compatible with v1 for the given system */
 	def static generateWriteC(AlphaSystem system, String outDir) {
 		new File(outDir).mkdirs
-		val program = SystemConverter.convert(system, baseDataType, true)
+		val program = WriteC.convert(system, baseDataType, true)
 		val code = ProgramPrinter.print(program).toString
 		val writer = new FileWriter('''«outDir»/«system.name».c''')
 		writer.write(code)
