@@ -3,10 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: alpha.glue.v2
 Bundle-SymbolicName: alpha.glue.v2; singleton:=true
 Bundle-Version: 0.1.0.qualifier
-Require-Bundle: org.eclipse.emf.ecore,
+Require-Bundle: alpha.codegen;bundle-version="1.0.0",
+ org.eclipse.emf.ecore,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.emf.ecore.xcore.lib,
- alpha.codegen;bundle-version="1.0.0",
  alpha.model;bundle-version="0.1.0",
  alpha.model.xtext;bundle-version="0.1.0",
  alpha.targetmapping.xtext;bundle-version="0.1.0",
